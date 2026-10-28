@@ -1,0 +1,66 @@
+# Secrets — never commit any of these.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service-account*.json
+*credentials*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.idea/
+.vscode/
+
+# Raw objects are generated data, not source. The layout under it is described in
+# docs/data-model.md; regenerating a run means re-running the pipeline, and the
+# fixtures under data/fixtures/ are what the test suite actually depends on.
+data/raw/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/modules/
+
+# Local scratch.
+tmp/
+*.local
+
+# Private local operations and generated evidence (never publication inputs).
+.venv-wsl/
+.claude-settings.json
+logs/
+scripts/diag_sql.py
+scripts/run_e2e.py
+scripts/setup_pg.py
+scripts/setup_pg.sh
+scripts/setup_pg_wsl2.py
+.airflow/
+airflow-home/
+airflow.db*
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.db-shm
+*.db-wal
+*.mv.db
+*.trace.db
+*.dump
+*.backup
+/backups/
+/receipts/
+/evidence/
+docker-compose.override.yml
+compose.local*.yml

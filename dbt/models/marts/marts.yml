@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: mart_monthly_generation
+    description: >
+        Final analytical table: leaf-only monthly net electricity generation
+        with dimension names. NULL is preserved (no COALESCE), negatives are
+        preserved, and the business key (period, location, sectorid, fueltypeid)
+        is unique. This is the primary model analysts query.
+    columns:
+      - name: period
+        tests:
+          - not_null
+      - name: location
+        tests:
+          - not_null
+      - name: sectorid
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['1', '2', '3', '4', '5', '6', '7']
+              # Sectors 8, 90, 94-99 are API-only UNKNOWN codes, blocked by
+              # the publish gate from fact_generation. This test catches any
+              # new code that slips through without curation.
+      - name: fueltypeid
+        tests:
+          - not_null
+      - name: generation_mwh
+        description: "Nullable. NULL = no data, 0 = measured zero. Negatives valid."
+
+  - name: mart_reconciliation_total
+    description: >
+        "US + all sectors + ALL" reconciliation total per period. Used by the
+        data test test_reconciliation.sql to verify leaf-side sums.
+    columns:
+      - name: period
+        tests:
+          - not_null

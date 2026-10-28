@@ -1,0 +1,82 @@
+{
+  "notes": "Every Phase 0 characteristic, one row each, so a regression in any of them fails a named test. Values are real where a real value exists: Beluga (AK plant 96) reported -608 MWh net generation for January 2026 in the 21SEP2026 EIA-923 vintage, and a battery energy storage plant reported -2335 MWh for July 2026. Negative values are legitimate, not a defect.",
+  "rows": [
+    {
+      "_case": "string-typed positive number",
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "null means no data, not zero",
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "AOR", "fuelTypeDescription": "all renewables",
+      "generation": null, "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "zero is a measured zero and must stay zero",
+      "period": "2026-07", "location": "MT", "stateDescription": "Montana",
+      "sectorid": "3", "sectorDescription": "NAICS-22 Cogen",
+      "fueltypeid": "SUN", "fuelTypeDescription": "Solar PV and thermal",
+      "generation": "0", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "negative net generation is valid (storage/CHP net consumption)",
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "HPS", "fuelTypeDescription": "Hydroelectric Pumped Storage",
+      "generation": "-2335", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "geography rollup: U.S. Total",
+      "period": "2026-07", "location": "US", "stateDescription": "U.S. Total",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "ALL", "fuelTypeDescription": "all fuels",
+      "generation": "412888.123456", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "geography rollup: census division",
+      "period": "2026-07", "location": "NEW", "stateDescription": "New England",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "ALL", "fuelTypeDescription": "all fuels",
+      "generation": "14122.75", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "geography rollup: Pacific spelled as the API facet spells it",
+      "period": "2026-07", "location": "PCC", "stateDescription": "Pacific Contiguous",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "ALL", "fuelTypeDescription": "all fuels",
+      "generation": "58210.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "energy source aggregate: all renewables",
+      "period": "2026-07", "location": "CA", "stateDescription": "California",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "AOR", "fuelTypeDescription": "all renewables",
+      "generation": "24890.125", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "sector 7, industrial cogeneration",
+      "period": "2026-07", "location": "TX", "stateDescription": "Texas",
+      "sectorid": "7", "sectorDescription": "Industrial NAICS Cogen",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "-4444", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "sparse: a combination that simply does not exist in this source",
+      "period": "2026-07", "location": "PR", "stateDescription": "Puerto Rico",
+      "sectorid": "2", "sectorDescription": "NAICS-22 Non-Cogen",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "12.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "_case": "sparse: a state with no nuclear at all",
+      "period": "2026-07", "location": "WY", "stateDescription": "Wyoming",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NUC", "fuelTypeDescription": "Nuclear",
+      "generation": null, "generation-units": "thousand megawatthours"
+    }
+  ]
+}

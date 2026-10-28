@@ -1,0 +1,4 @@
+{
+  "notes": "A source window that legitimately contains no rows. Models the real case where EIA has not yet published a period newer than the ones already held. The pipeline must record this as a successful, empty run rather than as a failure or, worse, as silence.",
+  "rows": []
+}

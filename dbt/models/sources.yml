@@ -1,0 +1,17 @@
+version: 2
+
+# Source tables managed by the Python ingestion pipeline (load.py Stages 2-3).
+# dbt models transform these tables; dbt does not own them.
+sources:
+  - name: core
+    schema: core
+    tables:
+      - name: fact_generation
+      - name: dim_date
+      - name: dim_geography
+      - name: dim_sector
+      - name: dim_energy_source
+  - name: audit
+    schema: audit
+    tables:
+      - name: ingestion_run

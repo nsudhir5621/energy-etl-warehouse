@@ -1,0 +1,92 @@
+{
+  "name": "EIA Electricity Generation Dashboard",
+  "description": "Descriptive dashboard blueprint, not an importable Metabase export or a copy of the verified synthetic-fixture dashboard. Display and parameter fields describe a proposed layout; filters are not wired or verified. The fixture dashboard uses a fuel table because latest-month shares are NULL. Monthly net electricity generation (EIA Form 923, API v2): leaf-only aggregates exclude rollup geographies and aggregate fuels per docs/data-model.md section 4. NULL differs from zero; finite negatives are valid.",
+  "ordered_cards": [
+    {
+      "card_name": "Total Net Generation by Month",
+      "card_file": "01_total_generation_by_period.sql",
+      "display": "line",
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4,
+      "description": "Total monthly generation (MWh) from leaf geographies only. Proposed filters: period, location, sector, fuel; parameter mappings are not implemented."
+    },
+    {
+      "card_name": "Top States by Generation (Latest 12 Months)",
+      "card_file": "02_generation_by_state.sql",
+      "display": "bar",
+      "row": 0,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 4,
+      "description": "Bar chart of top 20 states/regions by total MWh over the last 12 months."
+    },
+    {
+      "card_name": "Generation Mix by Fuel (Latest Month)",
+      "card_file": "03_generation_by_fuel.sql",
+      "display": "pie",
+      "row": 4,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 4,
+      "description": "Proposed pie chart only when latest-month shares are defined. The verified fixture dashboard uses a table and does not present NULL shares as percentages."
+    },
+    {
+      "card_name": "Generation by Sector (Latest 12 Months)",
+      "card_file": "04_sector_breakdown.sql",
+      "display": "bar",
+      "row": 4,
+      "col": 8,
+      "size_x": 16,
+      "size_y": 4,
+      "description": "Bar chart of generation by EIA sector over the last 12 months."
+    },
+    {
+      "card_name": "Reconciliation: Leaf vs US+ALL Total",
+      "card_file": "05_reconciliation_check.sql",
+      "display": "table",
+      "row": 8,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4,
+      "description": "Leaf-side sum vs the US+ALL all-sectors reconciliation total. Complete national data should reconcile within 0.01 MWh. The synthetic fixture is incomplete; July differs, and the query INNER JOIN omits June/August without source totals."
+    },
+    {
+      "card_name": "Generation Trend by Sector",
+      "card_file": "06_generation_trend.sql",
+      "display": "line",
+      "row": 8,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 4,
+      "description": "Multi-line chart of monthly generation by sector over the last 24 months."
+    }
+  ],
+  "parameters": [
+    {
+      "name": "Period",
+      "slug": "period",
+      "type": "string/=",
+      "field": "period"
+    },
+    {
+      "name": "State / Geography",
+      "slug": "location",
+      "type": "string/=",
+      "field": "location"
+    },
+    {
+      "name": "Sector",
+      "slug": "sectorid",
+      "type": "string/=",
+      "field": "sectorid"
+    },
+    {
+      "name": "Energy Source",
+      "slug": "fueltypeid",
+      "type": "string/=",
+      "field": "fueltypeid"
+    }
+  ]
+}

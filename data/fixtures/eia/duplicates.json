@@ -1,0 +1,53 @@
+{
+  "notes": "Duplicate handling, both kinds. `identical_duplicates` are rows 2,3,4,5 repeating the exact payload of row 1 — the same fact delivered twice, which batch-level deduplication must collapse without complaint. `conflicting_duplicates` are rows 7,8 sharing one key with DIFFERENT payloads — the source contradicting itself, which deduplication must refuse to resolve and validation must report as a hard failure. Keeping both in one fixture is intentional: the pipeline must not treat one as loudly as the other.",
+  "rows": [
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "TX", "stateDescription": "Texas",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NUC", "fuelTypeDescription": "Nuclear",
+      "generation": "48221.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "TX", "stateDescription": "Texas",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NUC", "fuelTypeDescription": "Nuclear",
+      "generation": "48221.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "TX", "stateDescription": "Texas",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NUC", "fuelTypeDescription": "Nuclear",
+      "generation": "48221.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "CA", "stateDescription": "California",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "COL", "fuelTypeDescription": "Coal",
+      "generation": "0.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "CA", "stateDescription": "California",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "COL", "fuelTypeDescription": "Coal",
+      "generation": "0.9", "generation-units": "thousand megawatthours"
+    }
+  ]
+}

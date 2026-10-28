@@ -1,0 +1,53 @@
+{
+  "notes": "Verbatim API response captured live from GET /v2/electricity/electric-power-operational-data/data/?frequency=monthly&data[0]=generation&length=2 on 2026-09-30. Preserved byte-for-byte in structure so envelope parsing is tested against the real shape, not a reconstruction. The second row's null generation is real: AOR (all renewables) is not populated for Alaska electric utility.",
+  "envelope": {
+    "warnings": [
+      {
+        "warning": "incomplete return",
+        "description": "The API can only return 5000 rows in JSON format.  Please consider constraining your request with facet, start, or end, or using offset to paginate results."
+      }
+    ],
+    "response": {
+      "total": "4771692",
+      "dateFormat": "YYYY-MM",
+      "frequency": "monthly",
+      "data": [
+        {
+          "period": "2026-07",
+          "location": "AK",
+          "stateDescription": "Alaska",
+          "sectorid": "1",
+          "sectorDescription": "Electric Utility",
+          "fueltypeid": "ALL",
+          "fuelTypeDescription": "all fuels",
+          "generation": "594.57104",
+          "generation-units": "thousand megawatthours"
+        },
+        {
+          "period": "2026-07",
+          "location": "AK",
+          "stateDescription": "Alaska",
+          "sectorid": "1",
+          "sectorDescription": "Electric Utility",
+          "fueltypeid": "AOR",
+          "fuelTypeDescription": "all renewables",
+          "generation": null,
+          "generation-units": "thousand megawatthours"
+        }
+      ],
+      "description": "Monthly and annual electric power operations by state, sector, and energy source.\n    Source: Form EIA-923",
+      "request": {
+        "command": "/v2/electricity/electric-power-operational-data/data/",
+        "params": {
+          "frequency": "monthly",
+          "data": [
+            "generation"
+          ],
+          "length": "2"
+        }
+      },
+      "apiVersion": "2.1.14",
+      "ExcelAddInVersion": "2.1.0"
+    }
+  }
+}

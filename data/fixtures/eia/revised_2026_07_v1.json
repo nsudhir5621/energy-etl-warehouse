@@ -1,0 +1,17 @@
+{
+  "notes": "Revision vintage 1 (earlier publication). Two 2026-07 keys, as first reported. The revision fixture pair models exactly what Phase 0 established: the source restates already-published periods, so a later vintage must be MERGEd onto these keys rather than skipped because they are 'old'.",
+  "rows": [
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-06", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "322.104", "generation-units": "thousand megawatthours"
+    }
+  ]
+}

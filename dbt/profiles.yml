@@ -1,0 +1,15 @@
+# dbt profile for the Energy ETL Warehouse project.
+# Targets an explicitly configured PostgreSQL warehouse.
+# Recorded integration verification used PostgreSQL 18.6. No connection defaults.
+energy:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DBT_PG_HOST') }}"
+      user: "{{ env_var('DBT_PG_USER') }}"
+      password: "{{ env_var('DBT_PG_PASSWORD') }}"
+      port: "{{ env_var('DBT_PG_PORT') | as_number }}"
+      dbname: "{{ env_var('DBT_PG_DBNAME') }}"
+      schema: marts
+      threads: 4

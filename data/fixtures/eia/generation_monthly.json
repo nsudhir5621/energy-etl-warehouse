@@ -1,0 +1,65 @@
+{
+  "notes": "Multi-page fixture. 10 rows spanning 3 months, 2 leaf geographies, 2 rollup geographies, 4 energy sources including one aggregate, and sectors 1-7. Values are real: they were reconciled against the EIA-923 bulk source file in Phase 0 (Alaska 2026-07 sector 1 all fuels = 594571.04 MWh matches the API's 594.57104 thousand MWh exactly).",
+  "rows": [
+    {
+      "period": "2026-06", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-06", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NUC", "fuelTypeDescription": "Nuclear",
+      "generation": null, "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "331.840757", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "ALL", "fuelTypeDescription": "all fuels",
+      "generation": "594.57104", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "AOR", "fuelTypeDescription": "all renewables",
+      "generation": null, "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "TX", "stateDescription": "Texas",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "8225.824146", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "TX", "stateDescription": "Texas",
+      "sectorid": "7", "sectorDescription": "Industrial NAICS Cogen",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "-4444", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "US", "stateDescription": "U.S. Total",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "ALL", "fuelTypeDescription": "all fuels",
+      "generation": "412888.123456", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-07", "location": "PCC", "stateDescription": "Pacific Contiguous",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "ALL", "fuelTypeDescription": "all fuels",
+      "generation": "58210.5", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-08", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "0", "generation-units": "thousand megawatthours"
+    }
+  ]
+}

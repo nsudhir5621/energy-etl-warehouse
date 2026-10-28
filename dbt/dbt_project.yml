@@ -1,0 +1,20 @@
+name: 'energy_dbt'
+version: '0.1.0'
+config-version: 2
+
+profile: 'energy'
+
+model-paths: ['models']
+test-paths: ['tests']
+target-path: 'target'
+clean-targets: ['target', 'dbt_modules']
+
+models:
+  energy_dbt:
+    +materialized: view
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table

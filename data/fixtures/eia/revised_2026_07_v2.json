@@ -1,0 +1,17 @@
+{
+  "notes": "Revision vintage 2 (later publication of the SAME keys). 2026-07 NG is revised 331.840757 -> 339.221400; 2026-06 NG is revised 322.104 -> 318.770000. Both keys are unchanged in identity and changed in value, which is the whole point: the merge key does not move, the measure does. A 2026-06 revision is older than a one-month lookback would reach, which is why explicit historical reconciliation exists as a separate path from normal rolling operation.",
+  "rows": [
+    {
+      "period": "2026-07", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "339.221400", "generation-units": "thousand megawatthours"
+    },
+    {
+      "period": "2026-06", "location": "AK", "stateDescription": "Alaska",
+      "sectorid": "1", "sectorDescription": "Electric Utility",
+      "fueltypeid": "NG", "fuelTypeDescription": "Natural Gas",
+      "generation": "318.77", "generation-units": "thousand megawatthours"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "energy-pipeline"
+version = "0.1.0"
+description = "ELT ingestion layer for U.S. EIA electric power operational data"
+requires-python = ">=3.11"
+dependencies = ["requests>=2.31", "psycopg[binary]>=3.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "ruff>=0.6", "dbt-core>=1.7", "dbt-postgres>=1.7", "apache-airflow>=3.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# `pythonpath` means tests import the package without an editable install, so
+# "clone the repository and run pytest" works with no setup step.
+pythonpath = ["src"]
+# The local integration suite runs by default -- it needs only a temporary
+# directory, and it is the project's mandatory integration gate.
+testpaths = ["tests", "dags/tests", "metabase/tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "dags", "metabase"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]

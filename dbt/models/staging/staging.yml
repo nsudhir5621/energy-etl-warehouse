@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: stg_generation
+    description: >
+        Enriched generation fact with dimension names and is_leaf flag.
+        Preserves all rows (leaf + rollup). Rollup rows are never dropped
+        here — they are filtered in mart models.
+    columns:
+      - name: period
+        description: "Month identifier (YYYY-MM)."
+        tests:
+          - not_null
+      - name: location
+        description: "Reporting geography code."
+        tests:
+          - not_null
+      - name: sectorid
+        description: "EIA sector code (1-7 in warehouse)."
+        tests:
+          - not_null
+      - name: fueltypeid
+        description: "Energy source code."
+        tests:
+          - not_null
+      - name: generation_thousand_mwh
+        description: "Source value in thousand MWh. Nullable; null != zero."
+      - name: generation_mwh
+        description: "generation_thousand_mwh * 1000. Nullable; null != zero."
+      - name: is_leaf
+        description: "True when the row is a leaf member on all three dimensions."
+        tests:
+          - not_null
+      - name: is_rollup_geography
+        description: "True when the geography code is a rollup (census division, US)."
+      - name: is_rollup_sector
+        description: "True when the sector code is a rollup (all FALSE for known sectors)."
+      - name: is_rollup_energy_source
+        description: "True when the fuel type code is an aggregate (ALL, AOR, etc.)."
