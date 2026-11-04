@@ -2,7 +2,7 @@
 
 ## Evidence scope
 
-Recorded verification through **28 October 2026** demonstrates a synthetic-fixture
+The original verification through **28 October 2026** demonstrates a synthetic-fixture
 pipeline and a separate live-extraction diagnostic. Results were reviewed for
 documentation. The public-snapshot connection-safety changes were then checked
 offline: 549 passed and 41 PostgreSQL cases were deliberately skipped. The live
@@ -26,6 +26,26 @@ PostgreSQL and live-extraction counts are retained from their approved stages. A
 cross-checked against their saved result records. No private receipts, database
 identifiers, connection strings, credentials or machine-specific paths are
 included here.
+
+## Fresh canonical reporting installation
+
+On **5 November 2026**, a separate `energy_reporting` Compose project initialized
+fresh PostgreSQL and Metabase volumes with PostgreSQL 18.6, Metabase v0.50.27 and
+nginx 1.30.6. The repository's static sample loaded six monthly rows and one
+reconciliation row. Private tmpfs secret delivery worked with PostgreSQL running
+as its non-root OS user; the reader could SELECT while seven write/CREATE/TEMP
+probes were denied with SQLSTATE `42501`.
+
+Administrator, connection, six questions and dashboard were explicitly provisioned
+through Metabase APIs. Chrome displayed four charts and two tables; all six
+responses matched independent SQL, with no query, network or JavaScript errors.
+The [public reporting guide](reporting.md) documents the configuration and manual
+UI setup; no automatic dashboard installer is claimed.
+
+This is a fresh **reporting-only** installation using a static synthetic dataset,
+not a rerun of extraction, warehouse loading, dbt or Airflow. Images were already
+available locally. Full-project fresh-install reproducibility, fresh-machine
+image pulls and a stop/start lifecycle cycle remain separate verification work.
 
 ## Verified dashboard results
 

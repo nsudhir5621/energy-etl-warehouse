@@ -62,6 +62,10 @@ safety changes; future counts can change.
 A reproducible full deployment still needs portable provisioning work. Do not
 interpret the following checklist as an automatic installer.
 
+For a separate static reporting demonstration, see the
+[canonical reporting setup](reporting.md). Its new-volume sample initializes
+only analytical tables; it does not execute or verify this ETL walkthrough.
+
 1. Provision a new disposable PostgreSQL database with its own restricted owner
    and private transport. Verify actual database, server and role identity before
    DDL or writes. Apply the unchanged `sql/001_schema.sql` only there.
@@ -128,7 +132,10 @@ test suite including reconciliation; fixture exclusion is not a production pass.
 
 - An isolated PostgreSQL provisioning procedure reusable on a fresh machine.
 - The Airflow metadata initialization and local-run environment used for verification.
-- The reporting snapshot transfer and loopback proxy configuration.
+- Automated transfer/refresh from a newly executed warehouse into reporting.
+  The canonical Compose setup now includes the loopback proxy and a separate
+  static reporting sample. Its fresh reporting installation was verified on
+  5 November 2026, with explicit API dashboard setup; it does not execute ETL/dbt.
 - A direct Metabase import: the tracked dashboard JSON is a blueprint, not an
   API export, and its filter declarations are not wired to the card queries.
 - An all-green fixture path in `scripts/init_pipeline.py`, which invokes
@@ -136,7 +143,8 @@ test suite including reconciliation; fixture exclusion is not a production pass.
 - A locked dependency set reproducing the tested tool versions.
 
 These are concrete setup gaps, not evidence that live publication or scheduler
-execution passed. The current tracked Compose file provides only Metabase.
+execution passed. The tracked Compose file defines a separate reporting project;
+it does not provision the source warehouse or Airflow.
 
 ## Real PostgreSQL integration tests
 

@@ -15,9 +15,9 @@ dbt debug --project-dir dbt --profiles-dir dbt
 dbt run --project-dir dbt --profiles-dir dbt
 ```
 
-The repository Compose example starts standalone Metabase only. It is separate
-from the verified private reporting PostgreSQL/Metabase/proxy deployment and the
-original historical Metabase application. None provisions this dbt warehouse.
+The repository Compose definition prepares a separate PostgreSQL/Metabase/nginx
+reporting demonstration with a static fixture snapshot. It does not provision
+this dbt warehouse or execute dbt. See [reporting setup](../docs/reporting.md).
 See [the demo guide](../docs/demo.md) for prerequisites and recorded scope.
 
 ## Fixture vs. production test runs

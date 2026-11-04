@@ -1,21 +1,129 @@
-# Standalone Metabase example; warehouse/reporting provisioning is separate.
-version: "3.8"
+# Canonical NEW reporting installation; never adopts the retained demo stack.
+# See docs/reporting.md. No infrastructure is created by configuration validation.
+name: energy_reporting
 
 services:
+  reporting:
+    image: postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    platform: linux/amd64
+    entrypoint: ["bash", "/usr/local/bin/reporting-entrypoint.sh"]
+    restart: "${REPORTING_RESTART_POLICY:-no}"
+    environment:
+      POSTGRES_DB: energy_reporting
+      POSTGRES_USER: energy_reporting_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/reporting_owner_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command:
+      - postgres
+      - -c
+      - cluster_name=energy_reporting
+      - -c
+      - log_statement=none
+      - -c
+      - log_min_error_statement=panic
+      - -c
+      - log_parameter_max_length_on_error=0
+    secrets:
+      - reporting_owner_password
+      - reporting_reader_password
+    tmpfs:
+      - /run/reporting-secrets:rw,noexec,nosuid,nodev,size=64k,mode=0700
+    volumes:
+      - reporting_data:/var/lib/postgresql
+      - type: bind
+        source: ./docker/reporting/entrypoint.sh
+        target: /usr/local/bin/reporting-entrypoint.sh
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./docker/reporting/initdb
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "energy_reporting_owner", "-d", "energy_reporting"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+      start_period: 20s
+
   metabase:
-    image: metabase/metabase:v0.50.27
-    ports:
-      - "127.0.0.1:3000:3000"
+    image: metabase/metabase:v0.50.27@sha256:9a9a45bd24df55a9c7f2769ed310f8c68d613b32959136a4034c7ba90b7f10c8
+    platform: linux/amd64
+    restart: "${REPORTING_RESTART_POLICY:-no}"
     environment:
       MB_DB_TYPE: h2
       MB_DB_FILE: /metabase-data/metabase.db
+      MB_ANON_TRACKING_ENABLED: "false"
+      MB_CHECK_FOR_UPDATES: "false"
+      MB_SITE_URL: "http://127.0.0.1:${REPORTING_HTTP_PORT:-3002}"
+      MB_JETTY_HOST: 0.0.0.0
+      MB_JETTY_PORT: "3000"
+      JAVA_TOOL_OPTIONS: -Xmx768m
     volumes:
-      - mb_data:/metabase-data
+      - metabase_data:/metabase-data
+    networks:
+      - backend
+    depends_on:
+      reporting:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "--max-time", "4", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+  proxy:
+    image: nginx:stable-alpine@sha256:47928bf67eb62a1863cb08d9ecb52d3e704304ba614eaee17884204677702951
+    platform: linux/amd64
+    restart: "${REPORTING_RESTART_POLICY:-no}"
+    entrypoint: ["nginx", "-c", "/etc/nginx/nginx.conf", "-g", "daemon off;"]
+    user: "101:101"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    volumes:
+      - type: bind
+        source: ./docker/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      - "127.0.0.1:${REPORTING_HTTP_PORT:-3002}:8080"
+    networks:
+      backend: {}
+      frontend:
+        gw_priority: 1
+    depends_on:
+      metabase:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-T", "4", "-O", "/dev/null", "http://127.0.0.1:8080/api/health"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
 volumes:
-  mb_data:
+  reporting_data:
+  metabase_data:
+
+networks:
+  backend:
+    internal: true
+  frontend:
+    internal: false
+
+secrets:
+  reporting_owner_password:
+    file: "${REPORTING_OWNER_PASSWORD_FILE:?Set REPORTING_OWNER_PASSWORD_FILE to a private password file}"
+  reporting_reader_password:
+    file: "${REPORTING_READER_PASSWORD_FILE:?Set REPORTING_READER_PASSWORD_FILE to a private password file}"

@@ -77,6 +77,13 @@ the Python files checked. The real PostgreSQL suite was not rerun.
 | Metabase | Six saved SQL questions executed and rendered | Browser results matched independent reporting SQL |
 | Reporting snapshot | Monthly mart: six rows; reconciliation mart: one row | Verified static snapshot, not continuous synchronization |
 
+A separate fresh reporting installation was verified on 5 November 2026 using
+the repository Compose setup, a static six-row/one-row analytical sample and
+explicit Metabase provisioning. PostgreSQL 18.6, Metabase v0.50.27 and nginx 1.30.6
+were used; all six browser responses matched SQL. This did not rerun ETL/dbt/Airflow
+or the full Python/PostgreSQL test suites. See the [reporting guide](docs/reporting.md)
+for its verification boundary and setup steps.
+
 See [portfolio evidence and interview summary](docs/portfolio.md) for the scope
 of these results.
 
@@ -116,9 +123,16 @@ namespace and an isolated Airflow environment. Explicitly configure
 settings fail closed; no production connection defaults are supplied. API credentials are needed only for live
 extraction and must remain outside Git.
 
-**The full isolated deployment is not yet a one-command fresh-clone setup.**
-The tracked Compose file starts only Metabase; the verified private PostgreSQL,
-Airflow and proxy provisioning is not packaged in it.
+**The full ETL deployment is not yet a one-command fresh-clone setup.**
+The [canonical reporting setup](docs/reporting.md) now defines a separate
+PostgreSQL/Metabase/nginx project on loopback port 3002 with a static synthetic
+reporting sample. It does not adopt the existing dashboard on port 3001, run
+ETL/dbt/Airflow, or automatically create saved questions. A fresh isolated
+reporting installation passed on 5 November 2026: database initialization, private
+tmpfs secrets, reader permissions and six questions rendered as four charts and
+two tables in Chrome. Metabase setup was an explicit API step; the guide provides
+a manual UI workflow. This is reporting-only verification, not full-project
+fresh-install reproducibility.
 `scripts/init_pipeline.py` also runs the full dbt test suite, including
 reconciliation that the fixture cannot pass. The
 [demo guide](docs/demo.md#isolated-warehouse-demonstration) documents the
@@ -140,6 +154,8 @@ dags/                   Monthly four-task DAG and mocked orchestration tests
 dbt/                    Sources, four models, schema tests and reconciliation test
 metabase/cards/         Six analytical SQL queries
 metabase/dashboards/    Descriptive dashboard blueprint, not a Metabase export
+docker/                 Reporting proxy and new-volume fixture initialization
+docs/reporting.md       Canonical reporting setup and manual dashboard recreation
 tests/                  Unit, filesystem and opt-in PostgreSQL integration tests
 data/fixtures/eia/      Synthetic and captured-response fixtures
 docs/demo.md            Safe setup, fixture walkthrough and reproduction gaps

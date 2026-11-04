@@ -1,0 +1,2 @@
+# Bootstrap scripts must keep Unix line endings on Windows and WSL checkouts.
+*.sh text eol=lf

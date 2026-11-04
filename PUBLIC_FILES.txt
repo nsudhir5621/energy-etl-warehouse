@@ -1,4 +1,5 @@
 .env.example
+.gitattributes
 .gitignore
 LICENSE
 PUBLIC_FILES.txt
@@ -27,9 +28,14 @@ dbt/profiles.yml
 dbt/tests/test_leaf_only.sql
 dbt/tests/test_reconciliation.sql
 docker-compose.yml
+docker/nginx.conf
+docker/reporting/entrypoint.sh
+docker/reporting/initdb/10-reader.sh
+docker/reporting/initdb/20-fixture.sql
 docs/data-model.md
 docs/demo.md
 docs/portfolio.md
+docs/reporting.md
 docs/source-data.md
 metabase/cards/01_total_generation_by_period.sql
 metabase/cards/02_generation_by_state.sql
