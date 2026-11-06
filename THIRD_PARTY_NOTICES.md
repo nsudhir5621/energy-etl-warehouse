@@ -21,11 +21,13 @@ claimed as original MIT-licensed project content. No EIA endorsement is implied.
 ## Metabase reporting assets
 
 This snapshot includes six fixture SQL questions, five bounded real-data SQL
-questions and two descriptive dashboard blueprints. Metabase interface screenshots
-are omitted; the genuine captures are
-retained with private verification evidence. Metabase software, interface elements,
-name and logos retain their upstream rights and are not relicensed under this
-project's MIT grant.
+questions and two descriptive dashboard blueprints. A cropped screenshot of the
+verified real EIA dashboard is included at
+[docs/assets/texas-july-2026-eia-dashboard.png](docs/assets/texas-july-2026-eia-dashboard.png).
+It was rendered in Metabase v0.50.27; navigation, margins and the local ingestion-run
+identifier are omitted, with data values and charts unchanged. Original captures
+remain private. Metabase software, interface elements, name and logos retain their
+upstream rights and are not relicensed under this project's MIT grant.
 
 See the [versioned Metabase license](https://github.com/metabase/metabase/blob/v0.50.27/LICENSE.txt)
 and [upstream AGPL text](https://www.metabase.com/license/agpl). This project does

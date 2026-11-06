@@ -132,7 +132,9 @@ installation dependencies or publication inputs.
   verified loader path. The active `load._ensure_partitions()` path is covered
   by the PostgreSQL tests; no standalone-helper database compatibility claim is made.
 - The fixture comparison is incomplete and its latest-month fuel share is NULL.
-  Dashboard filters are not implemented. Interface screenshots remain private.
+  Dashboard filters are not implemented. Original interface captures remain private;
+  the README includes a reviewed, cropped real-dashboard image with the local run
+  identifier omitted and data values unchanged.
 
 These limitations do not turn a correctly scoped pilot into a national or
 production deployment. They must remain visible in any portfolio description.

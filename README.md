@@ -1,17 +1,37 @@
 # Energy ETL Warehouse
 
-A local-first data engineering project for monthly U.S. electricity generation.
-It combines Python ingestion, immutable raw storage, a PostgreSQL dimensional
-warehouse, dbt models, Apache Airflow orchestration and Metabase reporting.
+A monthly electricity-generation pipeline from the public EIA API to Metabase
+reporting. It preserves immutable raw data, loads a revision-safe PostgreSQL
+warehouse and builds analytical marts with dbt, orchestrated by Airflow.
 
-**A synthetic-fixture demonstration and a bounded real-data pilot have been verified.**
-The real pilot covers Texas, July 2026, Electric Utility sector 1, with a separate
-Metabase reporting snapshot. Full-month national publication remains blocked by
-unresolved classification and reconciliation. Scheduler-driven operation is not claimed.
+**Stack:** Python · PostgreSQL · dbt · Apache Airflow · Docker · Metabase.
 
-The public source is the [EIA API v2 Electric Power Operational Data](https://www.eia.gov/opendata/browser/electricity/electric-power-operational-data).
-Source generation uses thousand megawatthours; warehouse values convert to MWh.
-Live extraction needs your own registered API key; fixture verification runs offline.
+## Verified real-data pilot
+
+**Texas · July 2026 · Electric Utility sector 1**, across all returned fuel categories.
+
+| Source/core records | Additive analytical rows | Generation (MWh) | Reconciliation difference (MWh) |
+|---:|---:|---:|---:|
+| 31 | 13 | 11,036,928.08 | 0.00 |
+
+![Real EIA dashboard showing Texas July 2026 sector-1 generation, fuel breakdown, reconciliation, measured zeros and negative generation](docs/assets/texas-july-2026-eia-dashboard.png)
+
+*Actual Metabase dashboard from the verified release capture. Navigation and
+margins are cropped; the local ingestion-run identifier is omitted. Data values
+and chart content are unchanged. This is a manually refreshed reporting snapshot,
+not a live warehouse connection.*
+
+This is one sector in one state/month, not total Texas or national generation.
+Nationwide publication remains blocked; reporting refresh is manual and
+production scheduler execution has not been verified.
+
+[Architecture](#architecture) · [Setup and execution](docs/demo.md) ·
+[Reporting setup](docs/reporting.md) · [Tests and verification](docs/verification.md) ·
+[Portfolio summary](docs/portfolio.md)
+
+Source: [EIA API v2 Electric Power Operational Data](https://www.eia.gov/opendata/browser/electricity/electric-power-operational-data).
+Source values use thousand megawatthours; warehouse values convert to MWh.
+Live extraction requires your own registered API key; fixture verification runs offline.
 
 ## Architecture
 
@@ -36,10 +56,9 @@ The DAG executes four tasks:
 Its extraction task also persists raw objects. dbt tests and Metabase dashboard
 setup are separate steps; Airflow does not manage the reporting snapshot.
 
-Six saved SQL questions executed and rendered against the synthetic fixture
-snapshot. The genuine Metabase interface screenshot is retained privately and
-omitted from this public snapshot. Zero and negative observations are intentional;
-reconciliation coverage is incomplete, so this is not a national generation report.
+A separate synthetic-fixture dashboard contains six verified SQL questions.
+Its incomplete reconciliation and undefined latest-month fuel share are documented
+in the [reporting guide](docs/reporting.md#reporting-data-boundary).
 
 ## Engineering decisions
 
@@ -73,8 +92,6 @@ gate; an offline skip is never counted as a database pass.
 |---|---|---|
 | Offline Python | 779 passed; 41 database cases skipped | Unit, filesystem raw storage, mocked DAG and reporting tests |
 | PostgreSQL integration | 41 passed in a fresh isolated PostgreSQL 18.6 target | Real commit/rollback, immutable identity, revisions, stale replay and concurrency |
-| Bounded real warehouse | Texas, July 2026, Electric Utility sector 1; 31 facts | All returned fuel categories retained; no national publication |
-| Analytical reconciliation | 13 additive rows; 11,036,928.08 MWh; 0.00 MWh gap | Matches the same scoped source ALL total |
 | Airflow | Two successful four-task local real-data DAG runs | dag.test(use_executor=False); no scheduled execution claimed |
 | dbt | Four models built; 12 applicable tests passed | National reconciliation test explicitly excluded for the pilot |
 | Real Metabase dashboard | Five questions rendered and matched independent SQL | Separate, manually refreshed reporting snapshot |
@@ -99,7 +116,8 @@ complete Texas or nationwide generation.
 
 The existing fixture dashboard and the new real-data dashboard use the same
 loopback-only Metabase installation, separate reporting databases and SELECT-only
-reporting access. Screenshots and operational credentials remain private.
+reporting access. Original captures, operational credentials and private verification
+receipts remain outside the repository.
 See the [reporting guide](docs/reporting.md#real-eia-reporting-snapshot) for
 refresh commands and the [portfolio summary](docs/portfolio.md) for interview wording.
 

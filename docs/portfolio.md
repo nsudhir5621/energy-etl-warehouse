@@ -57,8 +57,10 @@ A separate real-data collection contains five questions:
 
 Both dashboards rendered in an actual Chrome browser, and their query results
 matched independent PostgreSQL SQL. The final audit rechecked all eleven saved
-queries. Genuine interface screenshots remain private; this repository distributes
-SQL definitions and descriptive dashboard blueprints.
+queries. A [cropped real-dashboard screenshot](assets/texas-july-2026-eia-dashboard.png)
+is included publicly, alongside SQL definitions and descriptive dashboard blueprints.
+The crop omits navigation, margins and the local ingestion-run identifier; data
+values and charts are unchanged. Original captures and operational receipts remain private.
 
 Metabase reads separate reporting storage through a SELECT-only login. The real
 warehouse retains Unix-socket-only access. An explicit, tested manual refresh

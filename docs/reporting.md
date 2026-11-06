@@ -32,7 +32,7 @@ not part of the initial fresh-install run.
 | Browser | Chrome 156.0.8078.80; four charts and two tables visible; all six responses matched independent SQL; no query, network or JavaScript errors |
 
 These are recorded results, not assertions that every future checkout or
-deployment has been tested. Screenshots, credentials and private verification
+deployment has been tested. Original screenshots, credentials and private verification
 scripts are excluded from the public repository.
 
 ## Architecture and isolation
@@ -503,4 +503,7 @@ observation time (not an authoritative EIA revision timestamp), and copy-refresh
 time, all explicitly labelled. The snapshot retains run IDs and content hashes.
 The 122 unknown sector-95 observations and national reconciliation shortfall remain
 outside this bounded pilot. Its successful reconciliation does not resolve them.
-Screenshots and operational/credential files remain private, outside the repository.
+Original captures and operational/credential files remain private, outside the repository.
+The README includes a [reviewed crop of the real dashboard](assets/texas-july-2026-eia-dashboard.png),
+with interface navigation and the local ingestion-run identifier omitted. No data
+values or chart content were changed.

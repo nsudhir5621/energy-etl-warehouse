@@ -33,6 +33,7 @@ docker/nginx.conf
 docker/reporting/entrypoint.sh
 docker/reporting/initdb/10-reader.sh
 docker/reporting/initdb/20-fixture.sql
+docs/assets/texas-july-2026-eia-dashboard.png
 docs/data-model.md
 docs/demo.md
 docs/portfolio.md
