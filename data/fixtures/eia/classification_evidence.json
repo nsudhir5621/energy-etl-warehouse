@@ -1,0 +1,1622 @@
+{
+  "source": {
+    "provider": "U.S. Energy Information Administration",
+    "route": "/v2/electricity/electric-power-operational-data/data/",
+    "observed_at": "2026-11-05T00:58:38.831805Z",
+    "july_source_rows": 17423,
+    "july_content_hash": "77a8852908e157544c3074240ad87b3bc7ca77bff896e5ba506c0ecd673ffdfb",
+    "purpose": "Captured public facet labels and selected source observations; not synthetic fixture values. The sector 95 label is retained without inventing an interpretation.",
+    "sector95_recheck": {
+      "observed_at": "2026-11-06T03:56:23.922009+05:30",
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "95",
+      "rows_retrieved": 16,
+      "selected_fuels": [
+        "NG",
+        "SPV"
+      ],
+      "note": "Fresh authenticated slice matched all 16 previously captured US/sector95 observations; gas and solar values do not establish sector membership."
+    }
+  },
+  "facets": {
+    "fueltypeid": {
+      "totalFacets": 45,
+      "facets": [
+        {
+          "id": "ALL",
+          "name": "all fuels"
+        },
+        {
+          "id": "SPV",
+          "name": "solar photovoltaic"
+        },
+        {
+          "id": "LIG",
+          "name": "lignite coal"
+        },
+        {
+          "id": "RC",
+          "name": "refined coal"
+        },
+        {
+          "id": "BIT",
+          "name": "bituminous coal"
+        },
+        {
+          "id": "WAS",
+          "name": "renewable waste products"
+        },
+        {
+          "id": "STH",
+          "name": "solar thermal"
+        },
+        {
+          "id": "COW",
+          "name": "all coal products"
+        },
+        {
+          "id": "PET",
+          "name": "petroleum"
+        },
+        {
+          "id": "REN",
+          "name": "renewable"
+        },
+        {
+          "id": "TPV",
+          "name": "estimated total solar photovoltaic"
+        },
+        {
+          "id": "TSN",
+          "name": "estimated total solar"
+        },
+        {
+          "id": "HPS",
+          "name": "hydro-electric pumped storage"
+        },
+        {
+          "id": "OB2",
+          "name": "biomass"
+        },
+        {
+          "id": "OTH",
+          "name": "other"
+        },
+        {
+          "id": "LFG",
+          "name": "landfill gas"
+        },
+        {
+          "id": "MLG",
+          "name": "municiapl landfill gas"
+        },
+        {
+          "id": "NUC",
+          "name": "nuclear"
+        },
+        {
+          "id": "DPV",
+          "name": "estimated small scale solar photovoltaic"
+        },
+        {
+          "id": "WND",
+          "name": "wind"
+        },
+        {
+          "id": "WNT",
+          "name": "onshore wind turbine"
+        },
+        {
+          "id": "ORW",
+          "name": "other renewables"
+        },
+        {
+          "id": "ANT",
+          "name": "anthracite coal"
+        },
+        {
+          "id": "WNS",
+          "name": "offshore wind turbine"
+        },
+        {
+          "id": "BIO",
+          "name": "biomass"
+        },
+        {
+          "id": "SUB",
+          "name": "subbituminous coal"
+        },
+        {
+          "id": "PC",
+          "name": "petroleum coke"
+        },
+        {
+          "id": "WOC",
+          "name": "waste coal"
+        },
+        {
+          "id": "NGO",
+          "name": "natural gas & other gases"
+        },
+        {
+          "id": "PEL",
+          "name": "petroleum liquids"
+        },
+        {
+          "id": "RFO",
+          "name": "residual fuel oil"
+        },
+        {
+          "id": "SUN",
+          "name": "solar"
+        },
+        {
+          "id": "GEO",
+          "name": "geothermal"
+        },
+        {
+          "id": "OOG",
+          "name": "other gases"
+        },
+        {
+          "id": "WWW",
+          "name": "wood and wood wastes"
+        },
+        {
+          "id": "AOR",
+          "name": "all renewables"
+        },
+        {
+          "id": "BIS",
+          "name": "bituminous coal and synthetic coal"
+        },
+        {
+          "id": "WOO",
+          "name": "waste oil and other oils"
+        },
+        {
+          "id": "HYC",
+          "name": "conventional hydroelectric"
+        },
+        {
+          "id": "MSB",
+          "name": "biogenic municipal solid waste"
+        },
+        {
+          "id": "NG",
+          "name": "natural gas"
+        },
+        {
+          "id": "FOS",
+          "name": "fossil fuels"
+        },
+        {
+          "id": "COL",
+          "name": "coal, excluding waste coal"
+        },
+        {
+          "id": "DFO",
+          "name": "distillate fuel oil"
+        },
+        {
+          "id": "OBW",
+          "name": "biomass"
+        }
+      ]
+    },
+    "location": {
+      "totalFacets": 64,
+      "facets": [
+        {
+          "alias": "Region: (PCC) Pacific Contiguous",
+          "id": "PCC",
+          "name": "Pacific Contiguous"
+        },
+        {
+          "alias": "Region: (PAC) Pacific",
+          "id": "PAC",
+          "name": "Pacific"
+        },
+        {
+          "alias": "Region: (PCN) Pacific Noncontiguous",
+          "id": "PCN",
+          "name": "Pacific Noncontiguous"
+        },
+        {
+          "alias": "(MN) Minnesota",
+          "id": "MN",
+          "name": "Minnesota"
+        },
+        {
+          "alias": "(KS) Kansas",
+          "id": "KS",
+          "name": "Kansas"
+        },
+        {
+          "alias": "Region: (MAT) Middle Atlantic",
+          "id": "MAT",
+          "name": "Middle Atlantic"
+        },
+        {
+          "alias": "(IN) Indiana",
+          "id": "IN",
+          "name": "Indiana"
+        },
+        {
+          "alias": "(UT) Utah",
+          "id": "UT",
+          "name": "Utah"
+        },
+        {
+          "alias": "(CT) Connecticut",
+          "id": "CT",
+          "name": "Connecticut"
+        },
+        {
+          "alias": "(VA) Virginia",
+          "id": "VA",
+          "name": "Virginia"
+        },
+        {
+          "alias": "(PA) Pennsylvania",
+          "id": "PA",
+          "name": "Pennsylvania"
+        },
+        {
+          "alias": "(ND) North Dakota",
+          "id": "ND",
+          "name": "North Dakota"
+        },
+        {
+          "alias": "Region: (NEW) New England",
+          "id": "NEW",
+          "name": "New England"
+        },
+        {
+          "alias": "(MO) Missouri",
+          "id": "MO",
+          "name": "Missouri"
+        },
+        {
+          "alias": "(SC) South Carolina",
+          "id": "SC",
+          "name": "South Carolina"
+        },
+        {
+          "alias": "(DE) Delaware",
+          "id": "DE",
+          "name": "Delaware"
+        },
+        {
+          "alias": "(OH) Ohio",
+          "id": "OH",
+          "name": "Ohio"
+        },
+        {
+          "alias": "(MA) Massachusetts",
+          "id": "MA",
+          "name": "Massachusetts"
+        },
+        {
+          "alias": "(NE) Nebraska",
+          "id": "NE",
+          "name": "Nebraska"
+        },
+        {
+          "alias": "(CO) Colorado",
+          "id": "CO",
+          "name": "Colorado"
+        },
+        {
+          "alias": "(MT) Montana",
+          "id": "MT",
+          "name": "Montana"
+        },
+        {
+          "alias": "Region: (ENC) East North Central",
+          "id": "ENC",
+          "name": "East North Central"
+        },
+        {
+          "alias": "(LA) Louisiana",
+          "id": "LA",
+          "name": "Louisiana"
+        },
+        {
+          "alias": "(ME) Maine",
+          "id": "ME",
+          "name": "Maine"
+        },
+        {
+          "alias": "(GA) Georgia",
+          "id": "GA",
+          "name": "Georgia"
+        },
+        {
+          "alias": "(NY) New York",
+          "id": "NY",
+          "name": "New York"
+        },
+        {
+          "alias": "(WV) West Virginia",
+          "id": "WV",
+          "name": "West Virginia"
+        },
+        {
+          "alias": "(HI) Hawaii",
+          "id": "HI",
+          "name": "Hawaii"
+        },
+        {
+          "alias": "(WY) Wyoming",
+          "id": "WY",
+          "name": "Wyoming"
+        },
+        {
+          "alias": "(CA) California",
+          "id": "CA",
+          "name": "California"
+        },
+        {
+          "alias": "(OR) Oregon",
+          "id": "OR",
+          "name": "Oregon"
+        },
+        {
+          "alias": "Region: (SAT) South Atlantic",
+          "id": "SAT",
+          "name": "South Atlantic"
+        },
+        {
+          "alias": "(MI) Michigan",
+          "id": "MI",
+          "name": "Michigan"
+        },
+        {
+          "alias": "(MS) Mississippi",
+          "id": "MS",
+          "name": "Mississippi"
+        },
+        {
+          "alias": "(NC) North Carolina",
+          "id": "NC",
+          "name": "North Carolina"
+        },
+        {
+          "alias": "(MD) Maryland",
+          "id": "MD",
+          "name": "Maryland"
+        },
+        {
+          "alias": "(ID) Idaho",
+          "id": "ID",
+          "name": "Idaho"
+        },
+        {
+          "alias": "(WA) Washington",
+          "id": "WA",
+          "name": "Washington"
+        },
+        {
+          "alias": "(PR) Puerto Rico",
+          "id": "PR",
+          "name": "Puerto Rico"
+        },
+        {
+          "alias": "(AL) Alabama",
+          "id": "AL",
+          "name": "Alabama"
+        },
+        {
+          "alias": "Region: (WSC) West South Central",
+          "id": "WSC",
+          "name": "West South Central"
+        },
+        {
+          "alias": "(KY) Kentucky",
+          "id": "KY",
+          "name": "Kentucky"
+        },
+        {
+          "alias": "(TN) Tennessee",
+          "id": "TN",
+          "name": "Tennessee"
+        },
+        {
+          "alias": "Region: (MTN) Mountain",
+          "id": "MTN",
+          "name": "Mountain"
+        },
+        {
+          "alias": "Region: (WNC) West North Central",
+          "id": "WNC",
+          "name": "West North Central"
+        },
+        {
+          "alias": "(AZ) Arizona",
+          "id": "AZ",
+          "name": "Arizona"
+        },
+        {
+          "alias": "Region: (ESC) East South Central",
+          "id": "ESC",
+          "name": "East South Central"
+        },
+        {
+          "alias": "(WI) Wisconsin",
+          "id": "WI",
+          "name": "Wisconsin"
+        },
+        {
+          "alias": "(NH) New Hampshire",
+          "id": "NH",
+          "name": "New Hampshire"
+        },
+        {
+          "alias": "(AK) Alaska",
+          "id": "AK",
+          "name": "Alaska"
+        },
+        {
+          "alias": "Total: (US) U.S. Total",
+          "id": "US",
+          "name": "U.S. Total"
+        },
+        {
+          "alias": "(FL) Florida",
+          "id": "FL",
+          "name": "Florida"
+        },
+        {
+          "alias": "(OK) Oklahoma",
+          "id": "OK",
+          "name": "Oklahoma"
+        },
+        {
+          "alias": "(TX) Texas",
+          "id": "TX",
+          "name": "Texas"
+        },
+        {
+          "alias": "(AR) Arkansas",
+          "id": "AR",
+          "name": "Arkansas"
+        },
+        {
+          "alias": "(NM) New Mexico",
+          "id": "NM",
+          "name": "New Mexico"
+        },
+        {
+          "alias": "(RI) Rhode Island",
+          "id": "RI",
+          "name": "Rhode Island"
+        },
+        {
+          "alias": "(NV) Nevada",
+          "id": "NV",
+          "name": "Nevada"
+        },
+        {
+          "alias": "(IL) Illinois",
+          "id": "IL",
+          "name": "Illinois"
+        },
+        {
+          "alias": "(DC) District of Columbia",
+          "id": "DC",
+          "name": "District of Columbia"
+        },
+        {
+          "alias": "(NJ) New Jersey",
+          "id": "NJ",
+          "name": "New Jersey"
+        },
+        {
+          "alias": "(VT) Vermont",
+          "id": "VT",
+          "name": "Vermont"
+        },
+        {
+          "alias": "(SD) South Dakota",
+          "id": "SD",
+          "name": "South Dakota"
+        },
+        {
+          "alias": "(IA) Iowa",
+          "id": "IA",
+          "name": "Iowa"
+        }
+      ]
+    },
+    "sectorid": {
+      "totalFacets": 15,
+      "facets": [
+        {
+          "alias": "(1) Electric Utility",
+          "id": "1",
+          "name": "Electric Utility"
+        },
+        {
+          "alias": "(99) All Sectors",
+          "id": "99",
+          "name": "All Sectors"
+        },
+        {
+          "alias": "(98) Electric Power",
+          "id": "98",
+          "name": "Electric Power"
+        },
+        {
+          "alias": "(8) Residential",
+          "id": "8",
+          "name": "Residential"
+        },
+        {
+          "alias": "(90) Electric Power Sector Non-CHP",
+          "id": "90",
+          "name": "Electric Power Sector Non-CHP"
+        },
+        {
+          "alias": "(3) IPP CHP",
+          "id": "3",
+          "name": "IPP CHP"
+        },
+        {
+          "alias": "(6) Industrial Non-CHP",
+          "id": "6",
+          "name": "Industrial Non-CHP"
+        },
+        {
+          "alias": "(2) IPP Non-CHP",
+          "id": "2",
+          "name": "IPP Non-CHP"
+        },
+        {
+          "alias": "(4) Commercial Non-CHP",
+          "id": "4",
+          "name": "Commercial Non-CHP"
+        },
+        {
+          "alias": "(94) Independent Power Producers",
+          "id": "94",
+          "name": "Independent Power Producers"
+        },
+        {
+          "alias": "(7) Industrial CHP",
+          "id": "7",
+          "name": "Industrial CHP"
+        },
+        {
+          "alias": "(96) All Commercial",
+          "id": "96",
+          "name": "All Commercial"
+        },
+        {
+          "alias": "(97) All Industrial",
+          "id": "97",
+          "name": "All Industrial"
+        },
+        {
+          "alias": "(95) Coal Consumption",
+          "id": "95",
+          "name": "Coal Consumption"
+        },
+        {
+          "alias": "(5) Commercial CHP",
+          "id": "5",
+          "name": "Commercial CHP"
+        }
+      ]
+    }
+  },
+  "fuel_sum_witnesses": [
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "SUN",
+      "components": [
+        "SPV",
+        "STH"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "WND",
+      "components": [
+        "WNS",
+        "WNT"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "MLG",
+      "components": [
+        "LFG",
+        "MSB"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "WAS",
+      "components": [
+        "MLG",
+        "ORW"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "OBW",
+      "components": [
+        "MSB",
+        "ORW"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "BIO",
+      "components": [
+        "WWW",
+        "WAS"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "PAC",
+      "sectorid": "99",
+      "parent": "PEL",
+      "components": [
+        "DFO",
+        "RFO",
+        "WOO"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "COL",
+      "components": [
+        "ANT",
+        "BIT",
+        "LIG",
+        "SUB",
+        "RC"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "COW",
+      "components": [
+        "COL",
+        "WOC"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "TSN",
+      "components": [
+        "SUN",
+        "DPV"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "TPV",
+      "components": [
+        "SPV",
+        "DPV"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "AOR",
+      "components": [
+        "SUN",
+        "WND",
+        "GEO",
+        "BIO"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "sectorid": "99",
+      "parent": "REN",
+      "components": [
+        "HYC",
+        "AOR"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    }
+  ],
+  "rows": [
+    {
+      "fuelTypeDescription": "bituminous coal and synthetic coal",
+      "fueltypeid": "BIS",
+      "generation": "34480.04431",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2019-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "bituminous coal",
+      "fueltypeid": "BIT",
+      "generation": "34480.04431",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2019-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "biomass",
+      "fueltypeid": "OB2",
+      "generation": "194.27249",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2019-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "other renewables",
+      "fueltypeid": "ORW",
+      "generation": "194.27249",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2019-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "distillate fuel oil",
+      "fueltypeid": "DFO",
+      "generation": "152.34898",
+      "generation-units": "thousand megawatthours",
+      "location": "PAC",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "Pacific"
+    },
+    {
+      "fuelTypeDescription": "petroleum liquids",
+      "fueltypeid": "PEL",
+      "generation": "674.48156",
+      "generation-units": "thousand megawatthours",
+      "location": "PAC",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "Pacific"
+    },
+    {
+      "fuelTypeDescription": "residual fuel oil",
+      "fueltypeid": "RFO",
+      "generation": "480.43136",
+      "generation-units": "thousand megawatthours",
+      "location": "PAC",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "Pacific"
+    },
+    {
+      "fuelTypeDescription": "waste oil and other oils",
+      "fueltypeid": "WOO",
+      "generation": "41.70122",
+      "generation-units": "thousand megawatthours",
+      "location": "PAC",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "Pacific"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "239069.58332",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Electric Utility",
+      "sectorid": "1",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "187644.37274",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "IPP Non-CHP",
+      "sectorid": "2",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "11935.88786",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "IPP CHP",
+      "sectorid": "3",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "629.04801",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Commercial Non-CHP",
+      "sectorid": "4",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "831.18684",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Commercial CHP",
+      "sectorid": "5",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "690.93268",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Industrial Non-CHP",
+      "sectorid": "6",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "11165.68968",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Industrial CHP",
+      "sectorid": "7",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "estimated small scale solar photovoltaic",
+      "fueltypeid": "DPV",
+      "generation": "7272.53489",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Residential",
+      "sectorid": "8",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "estimated total solar photovoltaic",
+      "fueltypeid": "TPV",
+      "generation": "7272.53489",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Residential",
+      "sectorid": "8",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "estimated total solar",
+      "fueltypeid": "TSN",
+      "generation": "7272.53489",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Residential",
+      "sectorid": "8",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "426713.95606",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Electric Power Sector Non-CHP",
+      "sectorid": "90",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "199580.2606",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Independent Power Producers",
+      "sectorid": "94",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "540.33823",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Coal Consumption",
+      "sectorid": "95",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "1460.23485",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Commercial",
+      "sectorid": "96",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "11856.62236",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Industrial",
+      "sectorid": "97",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "438649.84392",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Electric Power",
+      "sectorid": "98",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all fuels",
+      "fueltypeid": "ALL",
+      "generation": "451966.70113",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "anthracite coal",
+      "fueltypeid": "ANT",
+      "generation": "0",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all renewables",
+      "fueltypeid": "AOR",
+      "generation": "78291.18054",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "biomass",
+      "fueltypeid": "BIO",
+      "generation": "4011.40823",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "bituminous coal and synthetic coal",
+      "fueltypeid": "BIS",
+      "generation": "30953.13913",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "bituminous coal",
+      "fueltypeid": "BIT",
+      "generation": "30953.13913",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "coal, excluding waste coal",
+      "fueltypeid": "COL",
+      "generation": "74979.26349",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "all coal products",
+      "fueltypeid": "COW",
+      "generation": "75639.31679",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "distillate fuel oil",
+      "fueltypeid": "DFO",
+      "generation": "619.03497",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "estimated small scale solar photovoltaic",
+      "fueltypeid": "DPV",
+      "generation": "10912.42063",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "fossil fuels",
+      "fueltypeid": "FOS",
+      "generation": "283286.75896",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "geothermal",
+      "fueltypeid": "GEO",
+      "generation": "1347.25322",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "hydro-electric pumped storage",
+      "fueltypeid": "HPS",
+      "generation": "-524.031",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "conventional hydroelectric",
+      "fueltypeid": "HYC",
+      "generation": "19447.28345",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "landfill gas",
+      "fueltypeid": "LFG",
+      "generation": "561.63674",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "lignite coal",
+      "fueltypeid": "LIG",
+      "generation": "3128.38368",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "municiapl landfill gas",
+      "fueltypeid": "MLG",
+      "generation": "1014.98601",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "biogenic municipal solid waste",
+      "fueltypeid": "MSB",
+      "generation": "453.34927",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "natural gas",
+      "fueltypeid": "NG",
+      "generation": "205225.06959",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "natural gas & other gases",
+      "fueltypeid": "NGO",
+      "generation": "205870.49035",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "nuclear",
+      "fueltypeid": "NUC",
+      "generation": "71171.673",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "biomass",
+      "fueltypeid": "OB2",
+      "generation": "143.14452",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "biomass",
+      "fueltypeid": "OBW",
+      "generation": "596.49378",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "other gases",
+      "fueltypeid": "OOG",
+      "generation": "645.42076",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "other renewables",
+      "fueltypeid": "ORW",
+      "generation": "143.14452",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "other",
+      "fueltypeid": "OTH",
+      "generation": "293.83618",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "petroleum coke",
+      "fueltypeid": "PC",
+      "generation": "471.88628",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "petroleum liquids",
+      "fueltypeid": "PEL",
+      "generation": "1305.06554",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "petroleum",
+      "fueltypeid": "PET",
+      "generation": "1776.95182",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "refined coal",
+      "fueltypeid": "RC",
+      "generation": "837.96901",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "renewable",
+      "fueltypeid": "REN",
+      "generation": "97738.46399",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "residual fuel oil",
+      "fueltypeid": "RFO",
+      "generation": "609.55572",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "solar photovoltaic",
+      "fueltypeid": "SPV",
+      "generation": "40729.05639",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "solar thermal",
+      "fueltypeid": "STH",
+      "generation": "314.94",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "subbituminous coal",
+      "fueltypeid": "SUB",
+      "generation": "40059.77167",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "solar",
+      "fueltypeid": "SUN",
+      "generation": "41043.99639",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "estimated total solar photovoltaic",
+      "fueltypeid": "TPV",
+      "generation": "51641.47702",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "estimated total solar",
+      "fueltypeid": "TSN",
+      "generation": "51956.41702",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "renewable waste products",
+      "fueltypeid": "WAS",
+      "generation": "1158.13053",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "wind",
+      "fueltypeid": "WND",
+      "generation": "31888.5227",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "offshore wind turbine",
+      "fueltypeid": "WNS",
+      "generation": "159.549",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "onshore wind turbine",
+      "fueltypeid": "WNT",
+      "generation": "31728.9737",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "waste coal",
+      "fueltypeid": "WOC",
+      "generation": "660.05331",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "waste oil and other oils",
+      "fueltypeid": "WOO",
+      "generation": null,
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "wood and wood wastes",
+      "fueltypeid": "WWW",
+      "generation": "2853.2777",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "All Sectors",
+      "sectorid": "99",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "natural gas",
+      "fueltypeid": "NG",
+      "generation": "389.70677",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Coal Consumption",
+      "sectorid": "95",
+      "stateDescription": "U.S. Total"
+    },
+    {
+      "fuelTypeDescription": "solar photovoltaic",
+      "fueltypeid": "SPV",
+      "generation": "107.16746",
+      "generation-units": "thousand megawatthours",
+      "location": "US",
+      "period": "2026-07",
+      "sectorDescription": "Coal Consumption",
+      "sectorid": "95",
+      "stateDescription": "U.S. Total"
+    }
+  ],
+  "sector_sum_witnesses": [
+    {
+      "period": "2026-07",
+      "location": "US",
+      "fueltypeid": "ALL",
+      "parent": "90",
+      "components": [
+        "1",
+        "2"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "fueltypeid": "ALL",
+      "parent": "94",
+      "components": [
+        "2",
+        "3"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "fueltypeid": "ALL",
+      "parent": "96",
+      "components": [
+        "4",
+        "5"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "fueltypeid": "ALL",
+      "parent": "97",
+      "components": [
+        "6",
+        "7"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "fueltypeid": "ALL",
+      "parent": "98",
+      "components": [
+        "1",
+        "2",
+        "3"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    },
+    {
+      "period": "2026-07",
+      "location": "US",
+      "fueltypeid": "ALL",
+      "parent": "99",
+      "components": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "absolute_tolerance_thousand_mwh": "0.00005"
+    }
+  ]
+}

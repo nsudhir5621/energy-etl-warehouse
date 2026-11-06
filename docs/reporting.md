@@ -13,8 +13,9 @@ API setup steps; Compose does not automate that provisioning.
 
 This verifies a fresh **reporting environment**, not a fresh ETL/dbt/Airflow
 deployment. The run used cached pinned `linux/amd64` images on Docker Desktop
-with WSL. Pulling images on a new machine, other architectures and a stop/start
-lifecycle cycle were not independently tested in that run.
+with WSL. Pulling images on a new machine and other architectures remain unverified.
+A subsequent controlled stop/start persistence check passed separately; it was
+not part of the initial fresh-install run.
 
 ## Recorded fresh-install verification
 
@@ -272,11 +273,11 @@ validation, classification, warehouse publication or dbt. Original ETL and dbt
 contracts remain in their existing files. See the [warehouse walkthrough](demo.md#isolated-warehouse-demonstration)
 to verify those components separately.
 
-For a future snapshot refresh from a newly executed warehouse, export an
-explicit matching column projection from both dbt marts, verify source identity,
-values and keys, and use a separately approved reporting transaction. Automated
-refresh/export is not implemented here. Do not point reporting at a historical
-warehouse or present this static sample as freshly executed ETL.
+The fixture sample is not synchronized automatically. Updating its two marts
+requires an explicit matching column projection, independent source identity/value
+checks and a separately approved reporting transaction. The separate real pilot
+has a public manual refresh script described below; it does not modify this fixture
+sample. Do not present the static sample as freshly executed ETL.
 
 Expected monthly totals (MWh): June `331840.757`, July approximately
 `4113664.903`, August `0`. Latest-month fuel share is NULL. July reconciliation
@@ -381,6 +382,125 @@ extra provenance columns, and users, layouts, collections and connections can
 differ. Review those differences and recovery coverage separately before retiring
 anything. No automatic migration or retirement is part of this setup.
 
-Remaining reproducibility work includes automated Metabase provisioning, image
-pull/platform checks, a tested stop/start cycle, snapshot refresh from a newly
-executed warehouse, and fresh installation of the full ETL/dbt/Airflow environment.
+The canonical reporting stack subsequently passed a controlled stop/start
+persistence check. Real warehouse-to-reporting manual refresh is described below.
+Remaining reproduction work includes automated Metabase provisioning, fresh-machine
+image/platform checks and fresh installation of the full ETL/dbt/Airflow environment.
+
+
+## Real EIA reporting snapshot
+
+A separate bounded real-data demonstration uses Texas, July 2026, Electric Utility
+sector `1`. It retains 31 source/core records and 13 additive utility-scale rows,
+reconciled to 11,036,928.08 MWh with a 0.00 MWh difference. This is one sector in
+one state/month, not total Texas generation or a national publication.
+
+The existing fixture dashboard, its questions and its `energy_reporting` database
+remain separate. The real dashboard uses **a manually refreshed reporting copy**,
+not a direct warehouse connection. The warehouse keeps TCP disabled and its
+private Unix socket is not mounted into Metabase. No container recreation or new
+Docker network/database listener is required.
+
+The verified local connection is `energy_real_reporting_b43`, a new database in
+the existing internal reporting PostgreSQL server. Its NOLOGIN owner is
+`energy_real_owner_b43`. Metabase reuses the existing SELECT-only reporting login;
+no password rotation or permissions change in the fixture database is needed.
+The reader receives CONNECT, schema USAGE and SELECT in the new database only;
+PUBLIC CREATE/TEMP access is revoked. The refresh operator uses local Docker
+maintenance access, which is never given to Metabase.
+
+The copy contains `marts.source_records` and `marts.snapshot_metadata`. Views expose
+`marts.mart_monthly_generation` and `marts.pilot_reconciliation`. The source is the
+verified dbt staging view and monthly mart, checked against successful live audit
+records and their immutable raw pages. All 31 observations are retained; only
+positively classified utility-scale leaves contribute to sums. Null, measured
+zero and negative values remain distinct. The real pilot has no nulls; incomplete
+leaf observations cannot be declared reconciled by replacing nulls with zero.
+
+### Provisioning boundary and private configuration
+
+The refresh script does **not** create databases, roles, schemas, containers or
+services. Before using it, an operator must separately verify the reporting server
+identity, create an unused `energy_real_reporting*` database with a dedicated
+NOLOGIN `energy_real_owner*` owner, revoke PUBLIC database/CREATE/TEMP access, and
+apply [reporting.sql](../metabase/real_data/reporting.sql) under that owner inside
+an identity-guarded transaction. Grant the reporting login only CONNECT, schema
+USAGE and SELECT. Record the actual database OID, cluster system identifier,
+container ID and image digest. Never apply this schema to the fixture database.
+
+Keep the source cluster, database OID, socket, role, raw roots and target identities
+in an owner-only JSON file (`0600`, parent `0700`) outside Git. The following is a
+**template**: replace the placeholder paths, zero OIDs and recorded identities
+with independently verified values. It is intentionally not runnable as written.
+No passwords or EIA key belong in this file.
+
+```json
+{
+  "source": {
+    "database": "energy_b42_pilot", "oid": 0, "user": "energy_b42_runner",
+    "cluster": "energy_pg_test_b42_YYYYMMDD_01", "port": 55445,
+    "socket": "/private/approved-pilot/postgres/socket",
+    "dsn": "host=/private/approved-pilot/postgres/socket port=55445 dbname=energy_b42_pilot user=energy_b42_runner connect_timeout=5 passfile=/dev/null",
+    "system_identifier": "RECORD_VERIFIED_IDENTIFIER",
+    "data_directory": "/private/approved-pilot/postgres/pgdata",
+    "control_binary": "/usr/lib/postgresql/18/bin/pg_controldata",
+    "raw_roots": ["/private/approved-pilot/manual-raw", "/private/approved-pilot/airflow-raw"]
+  },
+  "target": {
+    "database": "energy_real_reporting_pilot", "oid": 0,
+    "owner": "energy_real_owner_pilot",
+    "system_identifier": "RECORD_VERIFIED_IDENTIFIER",
+    "container_id": "RECORD_FULL_CONTAINER_ID",
+    "image": "RECORD_IMMUTABLE_IMAGE_DIGEST"
+  },
+  "scope": {"period": "2026-07", "location": "TX", "sectorid": "1", "source_rows": 31, "leaf_rows": 13},
+  "output_directory": "/private/real-reporting/snapshots"
+}
+```
+
+Create the private output directory with mode `0700` before running:
+
+```bash
+.venv/bin/python scripts/refresh_real_reporting.py \
+  --config /private/real-reporting/refresh-config.json
+```
+
+The source connection uses a repeatable-read **READ ONLY** transaction. Identity,
+positive classification, numeric conversion, business keys, raw page/batch hashes,
+accepted provenance and dbt freshness must pass before a target write. The target
+checks its database OID, cluster identity and owner, then replaces only the dedicated
+reporting tables in one transaction. Failure rolls back; no reset, provisioning or
+automatic retry occurs. Each attempted copy retains a new private JSON export.
+Committed source and leaf projections are compared with the export afterward.
+Run refreshes serially: no monotonic snapshot ordering is implemented between
+concurrent operators. A successful reporting copy does not establish a source
+warehouse revision; run the upstream pipeline and dbt separately first.
+The Linux operator and Docker administrators remain trusted maintenance users.
+
+### Metabase questions and refresh behavior
+
+Register the new database on the existing internal `reporting:5432` endpoint using
+the SELECT-only login. Use the [real dashboard blueprint](../metabase/dashboards/texas_real_eia_dashboard.json)
+and its five SQL files. Each SQL statement uses fixed `marts` identifiers in the
+separate database. Fuel codes provide labels where warehouse display names are
+null. A signed bar chart and a zero/negative table preserve the actual observations;
+there are no fabricated trends, nationwide rankings, pie shares or interactive filters.
+
+The recorded local dashboard is **Texas Electricity Generation — July 2026 (Real
+EIA Data)** at `http://127.0.0.1:3002/dashboard/3`, collection `4`, questions `33–37`,
+connection `3`. These IDs identify this installation; new installations assign
+independent IDs. Fixture dashboard `2` and questions `27–32` remain unchanged.
+
+Run successful ingestion and dbt separately before an explicit copy refresh. Stale
+materialized dbt data or inconsistent raw provenance causes rejection. Browser
+reload and Metabase application/container startup only reread reporting storage;
+they do not run ETL or copy warehouse data. Metabase query caching is a separate
+layer: verification requests bypass it, and browser rereads must display the new
+snapshot timestamp. No automatic reporting schedule is installed.
+
+The freshness question distinguishes the historical July data period, local source
+observation time (not an authoritative EIA revision timestamp), and copy-refresh
+time, all explicitly labelled. The snapshot retains run IDs and content hashes.
+The 122 unknown sector-95 observations and national reconciliation shortfall remain
+outside this bounded pilot. Its successful reconciliation does not resolve them.
+Screenshots and operational/credential files remain private, outside the repository.

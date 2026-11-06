@@ -4,10 +4,14 @@ A local-first data engineering project for monthly U.S. electricity generation.
 It combines Python ingestion, immutable raw storage, a PostgreSQL dimensional
 warehouse, dbt models, Apache Airflow orchestration and Metabase reporting.
 
-**A synthetic-fixture demonstration has been verified end to end.** A separate
-live EIA extraction succeeded, but publication of that full month remains
-blocked by unclassified dimension codes. Production reconciliation and
-scheduler-driven operation are not claimed.
+**A synthetic-fixture demonstration and a bounded real-data pilot have been verified.**
+The real pilot covers Texas, July 2026, Electric Utility sector 1, with a separate
+Metabase reporting snapshot. Full-month national publication remains blocked by
+unresolved classification and reconciliation. Scheduler-driven operation is not claimed.
+
+The public source is the [EIA API v2 Electric Power Operational Data](https://www.eia.gov/opendata/browser/electricity/electric-power-operational-data).
+Source generation uses thousand megawatthours; warehouse values convert to MWh.
+Live extraction needs your own registered API key; fixture verification runs offline.
 
 ## Architecture
 
@@ -59,33 +63,45 @@ reconciliation coverage is incomplete, so this is not a national generation repo
 - **Analytical separation:** dbt builds a leaf-only generation mart and a separate
   reconciliation mart. Metabase queries a SELECT-only snapshot, separate from the source warehouse.
 
-## Recorded verification
+## Verified scope and evidence
 
-The fixture/API/database results below are recorded October 2026 verification.
-The public-snapshot safety gate was rerun offline on 28 October 2026: 549 passed,
-41 database cases deliberately skipped, and Ruff lint/format checks passed on all
-the Python files checked. The real PostgreSQL suite was not rerun.
+The final offline audit on **7 November 2026** passed **779 tests**, with
+**41 PostgreSQL cases deliberately skipped**. Database verification is a separate
+gate; an offline skip is never counted as a database pass.
 
-| Area | Result | Boundary |
+| Area | Evidence | Boundary |
 |---|---|---|
-| Offline Python suite | 549 passed; 41 PostgreSQL cases deliberately skipped | No live services; skipped cases are not database verification |
-| Real PostgreSQL integration | 41 passed on isolated PostgreSQL 18.6 | Separate disposable database; revisions, rollback and concurrent publication exercised |
-| Live extraction | 17,423 records retrieved for July 2026 | Extraction only; full-month publication blocked by UNKNOWN codes |
-| Airflow | Four local `dag.test()` tasks succeeded in 56.6 seconds | No scheduler-driven execution verified |
-| Warehouse | 10 synthetic fixture facts published | Provenance and business-key uniqueness checked |
-| dbt | Four models and 12 applicable tests passed | National reconciliation test excluded for the incomplete fixture |
-| Metabase | Six saved SQL questions executed and rendered | Browser results matched independent reporting SQL |
-| Reporting snapshot | Monthly mart: six rows; reconciliation mart: one row | Verified static snapshot, not continuous synchronization |
+| Offline Python | 779 passed; 41 database cases skipped | Unit, filesystem raw storage, mocked DAG and reporting tests |
+| PostgreSQL integration | 41 passed in a fresh isolated PostgreSQL 18.6 target | Real commit/rollback, immutable identity, revisions, stale replay and concurrency |
+| Bounded real warehouse | Texas, July 2026, Electric Utility sector 1; 31 facts | All returned fuel categories retained; no national publication |
+| Analytical reconciliation | 13 additive rows; 11,036,928.08 MWh; 0.00 MWh gap | Matches the same scoped source ALL total |
+| Airflow | Two successful four-task local real-data DAG runs | dag.test(use_executor=False); no scheduled execution claimed |
+| dbt | Four models built; 12 applicable tests passed | National reconciliation test explicitly excluded for the pilot |
+| Real Metabase dashboard | Five questions rendered and matched independent SQL | Separate, manually refreshed reporting snapshot |
+| Fixture reporting | Six saved questions remain verified | Static synthetic sample, separate from the real-data dashboard |
+| Static checks | Ruff lint/format passed for 43 Python files; shell and Compose checks passed | Configuration validation does not start services |
 
-A separate fresh reporting installation was verified on 5 November 2026 using
-the repository Compose setup, a static six-row/one-row analytical sample and
-explicit Metabase provisioning. PostgreSQL 18.6, Metabase v0.50.27 and nginx 1.30.6
-were used; all six browser responses matched SQL. This did not rerun ETL/dbt/Airflow
-or the full Python/PostgreSQL test suites. See the [reporting guide](docs/reporting.md)
-for its verification boundary and setup steps.
+Real ingestion and the two Airflow runs were executed during the bounded pilot.
+The final audit reran offline tests and read-only dbt/reporting checks, and
+confirmed the warehouse and immutable raw hashes remain unchanged. It did not
+rerun upstream ingestion or a scheduler. See the [verification record](docs/verification.md)
+for dated execution boundaries and the final database-test status.
 
-See [portfolio evidence and interview summary](docs/portfolio.md) for the scope
-of these results.
+The pilot retains eight measured zero core observations and one negative:
+`OTH = -86 MWh`. Its analytical mart includes four measured zeros and the negative.
+There are no nulls in this real slice; null preservation is covered separately
+by fixture, unit and PostgreSQL tests.
+
+The full July API diagnostic retrieved 17,423 records. Its 122 sector-95
+observations remain UNKNOWN, and national reconciliation remains unresolved.
+That full batch was **not published**. A successful bounded pilot does not prove
+complete Texas or nationwide generation.
+
+The existing fixture dashboard and the new real-data dashboard use the same
+loopback-only Metabase installation, separate reporting databases and SELECT-only
+reporting access. Screenshots and operational credentials remain private.
+See the [reporting guide](docs/reporting.md#real-eia-reporting-snapshot) for
+refresh commands and the [portfolio summary](docs/portfolio.md) for interview wording.
 
 ## Start offline
 
@@ -152,29 +168,35 @@ src/energy_pipeline/     API client, pagination, records, raw storage, validatio
 sql/001_schema.sql      PostgreSQL staging, dimensions, partitioned facts and audit schema
 dags/                   Monthly four-task DAG and mocked orchestration tests
 dbt/                    Sources, four models, schema tests and reconciliation test
-metabase/cards/         Six analytical SQL queries
-metabase/dashboards/    Descriptive dashboard blueprint, not a Metabase export
+metabase/cards/         Six synthetic-fixture SQL questions
+metabase/real_data/     Real-pilot snapshot schema and five SQL questions
+metabase/dashboards/    Fixture and real-data dashboard blueprints, not API exports
 docker/                 Reporting proxy and new-volume fixture initialization
 docs/reporting.md       Canonical reporting setup and manual dashboard recreation
 tests/                  Unit, filesystem and opt-in PostgreSQL integration tests
 data/fixtures/eia/      Synthetic and captured-response fixtures
 docs/demo.md            Safe setup, fixture walkthrough and reproduction gaps
 docs/portfolio.md       Recorded evidence, resume bullets and interview explanation
+docs/verification.md    Final verification scope, release gates and limitations
 ```
 
 ## Limitations and next improvements
 
-- Complete fuel/sector classification still requires source evidence. Sectors
-  `8`, `90` and `94`–`99` remain UNKNOWN; their previously reported labels
-  are not independently verified by a saved facet response.
-- The incomplete fixture cannot establish national reconciliation. The dbt
-  production reconciliation test remains intact. The dashboard comparison uses
-  an INNER JOIN, so missing June/August source totals are omitted.
+- Full national publication remains blocked: sector `95` is UNKNOWN, and
+  national generation reconciliation is unresolved. The bounded Texas sector-1
+  pilot does not resolve these wider coverage questions; see the current evidence
+  in [source research](docs/source-data.md).
+- The incomplete fixture cannot establish national reconciliation. Its fixture
+  dashboard comparison uses an INNER JOIN, so missing June/August source totals
+  are omitted. The real pilot uses a separate scoped reconciliation; the national
+  dbt test remains intact and excluded for both incomplete demonstrations.
 - Latest-month fixture generation is zero, making fuel shares undefined/NULL;
   the demonstration uses a table rather than a pie chart.
 - Dimension names may be missing; charts use codes. Dashboard filters are not
   implemented, and snapshot refresh is manual.
 - Local `dag.test()` success does not establish scheduler reliability.
+- Fact-to-dimension/audit relationships are checked logically; physical foreign
+  keys are absent. Direct SQL writers can bypass application safeguards.
 - Portable isolated provisioning, dependency locking and automated CI are follow-up work.
 - Full source coverage, revision horizon and source-withdrawal handling need
   further evidence or explicit policy.

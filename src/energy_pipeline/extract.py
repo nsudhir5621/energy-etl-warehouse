@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -101,7 +101,20 @@ class ExtractionSource(Protocol):
 class ApiSource:
     """Reads a period window from the live EIA API."""
 
-    def __init__(self, client: EiaClient, settings: Settings, window: PeriodWindow) -> None:
+    def __init__(
+        self,
+        client: EiaClient,
+        settings: Settings,
+        window: PeriodWindow,
+        *,
+        facets: Mapping[str, str] | None = None,
+    ) -> None:
+        selected = dict(facets or {})
+        if set(selected) - {"location", "sectorid", "fueltypeid"}:
+            raise ValueError("Unsupported generation facet")
+        if any(not isinstance(v, str) or not v or v.strip() != v for v in selected.values()):
+            raise ValueError("Facet values must be nonempty strings without surrounding whitespace")
+        self._facets = {f"facets[{k}][]": v for k, v in selected.items()}
         self._client = client
         self._settings = settings
         self._window = window
@@ -111,6 +124,7 @@ class ApiSource:
             "frequency": self._settings.frequency,
             "data[0]": self._settings.measure,
             **self._window.as_params(),
+            **self._facets,
         }
 
     def fetch_page(self, offset: int, length: int) -> dict[str, Any]:
@@ -141,6 +155,7 @@ class ApiSource:
             {
                 "frequency": self._settings.frequency,
                 "data[0]": self._settings.measure,
+                **self._facets,
                 "length": 1,
                 "sort[0][column]": "period",
                 "sort[0][direction]": "desc",
@@ -239,6 +254,7 @@ def extract(
     window: PeriodWindow,
     *,
     extracted_at: str | None = None,
+    max_pages: int = 10_000,
 ) -> ExtractionResult:
     """Fetch a window, build the immutable batch, parse, deduplicate, validate.
 
@@ -246,6 +262,8 @@ def extract(
     It is not an EIA revision timestamp; execution identity is a separate UUID4.
     Only recognized source objects receive explicit API/fixture origin labels.
     """
+    if max_pages < 1:
+        raise ValueError("max_pages must be positive")
     if extracted_at is None:
         extracted_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -255,7 +273,9 @@ def extract(
     elif isinstance(source, FixtureSource):
         origin = FIXTURE_SOURCE_NAME
 
-    pages: Sequence = list(iter_pages(source.fetch_page, page_size=settings.page_size))
+    pages: Sequence = list(
+        iter_pages(source.fetch_page, page_size=settings.page_size, max_pages=max_pages)
+    )
     batch = build_batch(
         pages,
         source=origin,

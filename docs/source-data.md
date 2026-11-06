@@ -7,7 +7,111 @@ genuinely unverified — the reasons are recorded in §8 and §13 rather than gu
 
 The ✅ markers below record historical verification claims. For sector facets, the
 reported live findings are distinguished from independently inspectable artifacts in §5.
-Everything marked ⚠️ is explicitly unverified, with the reason and the plan to close it.
+The markers describe the historical investigation; the B4.1 update below records
+which classifications now have captured evidence and which remain unresolved.
+
+
+## B4.1 live classification evidence — 5 November 2026
+
+A bounded authenticated scan reproduced **17,423 July 2026 records**, four pages,
+17,423 distinct business keys and no hard parsing failures. The API's latest
+monthly period was **2026-08** at observation time. Complete facet responses had
+64 locations, 15 sectors and 45 fuels. Public labels and selected observations
+are captured in [classification_evidence.json](../data/fixtures/eia/classification_evidence.json);
+the fixture records observation time and original batch content hash, with no
+credentials or authenticated request URLs.
+
+Before correction, 12,676 records contained unknown classifications: all eight
+additional sector codes and 18 fuel codes were present. After correction,
+**17,301 records have established classifications; 122 sector-95 records remain
+unresolved**. The complete batch remains blocked from core publication. These
+are classification counts, not claims of database loading or a full live pipeline.
+
+The additive fuel basis is now **26 components**:
+`ANT BIT DFO DPV GEO HPS HYC LFG LIG MSB NG NUC OOG ORW OTH PC RC RFO SPV STH SUB WNS WNT WOC WOO WWW`.
+
+The **19 non-additive representations** are:
+`ALL AOR BIO BIS COL COW FOS MLG NGO OB2 OBW PEL PET REN SUN TPV TSN WAS WND`.
+The rollup flag denotes exclusion from the additive basis, including overlapping
+alternative representations; it does not rename or collapse their source keys.
+`MLG` was incorrectly retained as a leaf: the source demonstrates
+`MLG = LFG + MSB`. Further complete-cell checks establish `WAS = MLG + ORW`,
+`OBW = MSB + ORW`, `BIO = WWW + WAS`, and the coal, petroleum, wind and solar
+component sums stored in the fixture. `OB2/ORW` and `BIS/BIT` have matching
+observations in the captured July 2026 and July 2019 slices; the canonical basis
+uses `ORW` and `BIT`, retaining the alternatives as non-additive source rows.
+These observations do not assert that aliases will remain numerically identical
+through all future source revisions.
+
+Sectors `1–8` are disjoint components; `8` is Residential. Sector rollups are
+`90, 94, 96, 97, 98, 99`: complete observations confirm `90 = 1 + 2`,
+`94 = 2 + 3`, `96 = 4 + 5`, `97 = 6 + 7`, and `98 = 1 + 2 + 3`.
+For utility-scale `ALL`, `99 = 1 + ... + 7`.
+
+**Sector 95 remains UNKNOWN.** Its actual facet label is "Coal Consumption",
+but its 122 July observations include positive gas, solar and other generation.
+It is absent from the browser's generation-sector hierarchy. Neither a label
+guess nor those observations prove a disjoint leaf or aggregate membership.
+An EIA clarification or an explicitly designed, auditable quarantine policy is
+needed; no rows are silently removed to obtain publication success.
+
+**Coverage:** `DPV` is valid estimated small-scale solar, and Residential is a
+valid source sector. They remain available at the core/staging grain when
+publication is otherwise eligible. The existing analytical mart is explicitly
+**utility-scale**, matching the source `ALL` reconciliation scope:
+`int_generation_leaf` selects sectors `1–7` and excludes `DPV`; it does not
+misclassify Residential or DPV as rollups.
+This is an analytical scope filter, not an ingestion/raw-data filter.
+
+Nulls are not zeros. Numerical witnesses compare only present, non-null source
+components, within their documented rounding tolerance. Missing or null
+components do not establish numerical closure. July's aggregate across all
+leaf geographies also includes Puerto Rico, while the U.S. total does not;
+the observed national reconciliation gap remains an open completeness/scope
+question. Finite utility-scale leaf observations sum to 452,795,482.55 MWh
+including PR, versus 451,966,701.13 MWh in the U.S. source total. Excluding
+PR leaves a -778,755.09 MWh gap and 247 null leaf observations; neither
+missingness nor geography alone has been established as the full cause.
+The dbt reconciliation threshold is unchanged.
+
+Changing a classification can change stored flags even when source content is
+identical. Existing published runs must not be silently restaged or reclassified
+under the same immutable provenance. No historical database was changed.
+
+### B4.1 resumption — 6 November 2026
+
+After the workstation restart, the protected credential loader and authenticated
+API access were checked again. A single bounded July request for `US / 95`
+returned 16 rows, identical to the earlier captured slice. The evidence fixture
+now includes positive `NG` (389.70677) and `SPV` (107.16746) observations, in
+thousand MWh, still labelled "Coal Consumption" by the source. Both remain
+UNKNOWN in the sector dimension and fail the independent publication gate.
+No additional sector classification is justified by this evidence. A bounded
+four-page full-July recheck also reproduced all 17,423 business keys and the
+original content hash: 17,301 classified records and 122 unresolved sector-95
+records. The entire batch remained blocked; no raw-zone or warehouse writes
+were performed.
+
+The retained full-July capture also permits a more precise reconciliation
+diagnostic. These are sums of finite observations, never imputed null values:
+
+| Source slice | Rows | Null observations | Finite subtotal (MWh) |
+|---|---:|---:|---:|
+| U.S. `ALL`, sectors 1–7 | 7 | 0 | 451,966,701.13 |
+| State/DC `ALL`, sectors 1–7, excluding PR | 302 | 43 | 451,846,844.41 |
+| U.S. utility-scale fuel leaves, sectors 1–7 | 126 | 12 | 451,822,572.52 |
+| State/DC utility-scale fuel leaves, excluding PR | 1,682 | 247 | 451,187,946.04 |
+
+The state/DC detailed subtotal is 778,755.09 MWh below the U.S. source total.
+Even the state/DC `ALL` subtotal is 119,856.72 MWh below it. These residuals
+identify incomplete numerical evidence; they do not assign values to null or
+absent cells, prove a particular cause, or authorize relaxed reconciliation.
+PR coverage must also be aligned explicitly when comparing a geographic sum to
+`US`. Neither reconciliation SQL nor its tolerance was changed in this resumption.
+
+The sections below retain the earlier Phase 0 audit as a historical record.
+Their old vocabulary counts, verification markers and unresolved-facet statements
+describe that investigation; the B4.1 contract above is the current classification.
 
 ---
 

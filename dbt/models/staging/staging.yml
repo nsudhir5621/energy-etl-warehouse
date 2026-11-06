@@ -16,7 +16,7 @@ models:
         tests:
           - not_null
       - name: sectorid
-        description: "EIA sector code (1-7 in warehouse)."
+        description: "EIA sector: leaves 1-8, curated totals, and unresolved codes blocked at publication."
         tests:
           - not_null
       - name: fueltypeid
@@ -34,6 +34,6 @@ models:
       - name: is_rollup_geography
         description: "True when the geography code is a rollup (census division, US)."
       - name: is_rollup_sector
-        description: "True when the sector code is a rollup (all FALSE for known sectors)."
+        description: "True for curated sector totals 90/94/96-99; FALSE alone does not prove leaf membership."
       - name: is_rollup_energy_source
         description: "True when the fuel type code is an aggregate (ALL, AOR, etc.)."

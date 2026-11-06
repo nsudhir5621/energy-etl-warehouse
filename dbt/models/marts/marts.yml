@@ -3,7 +3,7 @@ version: 2
 models:
   - name: mart_monthly_generation
     description: >
-        Final analytical table: leaf-only monthly net electricity generation
+        Final analytical table: utility-scale leaf-only monthly net electricity generation
         with dimension names. NULL is preserved (no COALESCE), negatives are
         preserved, and the business key (period, location, sectorid, fueltypeid)
         is unique. This is the primary model analysts query.
@@ -20,9 +20,9 @@ models:
           - accepted_values:
               arguments:
                 values: ['1', '2', '3', '4', '5', '6', '7']
-              # Sectors 8, 90, 94-99 are API-only UNKNOWN codes, blocked by
-              # the publish gate from fact_generation. This test catches any
-              # new code that slips through without curation.
+              # The utility-scale mart retains sectors 1-7 and excludes DPV.
+              # Residential sector 8 remains available in core/staging.
+              # Rollup sectors are excluded; unresolved 95 blocks publication.
       - name: fueltypeid
         tests:
           - not_null

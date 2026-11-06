@@ -175,18 +175,18 @@ class TestRecordToStageRow:
         assert row[7] is False  # not rollup (unknown)
 
     def test_unknown_energy_source_not_rollup(self):
-        r = _record(fueltypeid="BIO")
+        r = _record(fueltypeid="ZZZ")
         row = record_to_stage_row(r, RUN_ID, CONTENT_HASH)
         assert row[9] is False  # not rollup (unknown)
 
     def test_unknown_sector_not_rollup(self):
-        r = _record(sectorid="8")
+        r = _record(sectorid="95")
         row = record_to_stage_row(r, RUN_ID, CONTENT_HASH)
         assert row[8] is False  # not rollup (unknown)
 
     def test_unknown_code_all_flags_false(self):
         """Unknown in all dimensions — all three rollup flags False (not True)."""
-        r = _record(location="ZZ", sectorid="8", fueltypeid="BIO")
+        r = _record(location="ZZ", sectorid="95", fueltypeid="ZZZ")
         row = record_to_stage_row(r, RUN_ID, CONTENT_HASH)
         assert row[7] is False  # geography
         assert row[8] is False  # sector
@@ -195,7 +195,7 @@ class TestRecordToStageRow:
     def test_unknown_code_still_produces_row(self):
         """Unknown codes ARE staged — they are accepted at ingestion.
         Only the publish gate (Stage 3) blocks them from core.fact_generation."""
-        r = _record(location="ZZ", fueltypeid="BIO", generation=None)
+        r = _record(location="ZZ", fueltypeid="ZZZ", generation=None)
         row = record_to_stage_row(r, RUN_ID, CONTENT_HASH)
         # Row exists, is_rollup flags are all False (unknown ≠ rollup ≠ leaf)
         assert row is not None

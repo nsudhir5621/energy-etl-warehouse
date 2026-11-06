@@ -167,16 +167,16 @@ def test_an_unrecognised_energy_source_is_ingested_but_never_treated_as_leaf():
 
 
 UNKNOWN_WITH_ROLLUP_CASES = [
-    ("US", "8", "NG", ("rollup", "unknown", "leaf"), "sector", "8"),
-    ("US", "1", "BIO", ("rollup", "leaf", "unknown"), "energy_source", "BIO"),
-    ("AK", "8", "ALL", ("leaf", "unknown", "rollup"), "sector", "8"),
+    ("US", "95", "NG", ("rollup", "unknown", "leaf"), "sector", "95"),
+    ("US", "1", "ZZZ", ("rollup", "leaf", "unknown"), "energy_source", "ZZZ"),
+    ("AK", "95", "ALL", ("leaf", "unknown", "rollup"), "sector", "95"),
 ]
 
 
 @pytest.mark.parametrize(
     "location, sectorid, fueltypeid, expected_classes, dimension, code",
     UNKNOWN_WITH_ROLLUP_CASES,
-    ids=["US-8-NG", "US-1-BIO", "AK-8-ALL"],
+    ids=["US-95-NG", "US-1-ZZZ", "AK-95-ALL"],
 )
 def test_known_rollup_does_not_hide_unknown_code_warning(
     location, sectorid, fueltypeid, expected_classes, dimension, code
@@ -201,7 +201,7 @@ def test_known_rollup_does_not_hide_unknown_code_warning(
 @pytest.mark.parametrize(
     "location, sectorid, fueltypeid, expected_classes, dimension, code",
     UNKNOWN_WITH_ROLLUP_CASES,
-    ids=["US-8-NG", "US-1-BIO", "AK-8-ALL"],
+    ids=["US-95-NG", "US-1-ZZZ", "AK-95-ALL"],
 )
 def test_unknown_code_on_rollup_record_still_blocks_publication(
     location, sectorid, fueltypeid, expected_classes, dimension, code
@@ -235,7 +235,7 @@ def test_known_rollup_without_unknown_codes_has_no_unknown_warning():
 
 
 def test_multiple_unknown_dimensions_on_rollup_count_as_one_unknown_row():
-    record = parse_record(_row(location="US", sectorid="8", fueltypeid="BIO"))
+    record = parse_record(_row(location="US", sectorid="95", fueltypeid="ZZZ"))
     assert (record.geography_class, record.sector_class, record.energy_source_class) == (
         "rollup",
         "unknown",
@@ -248,7 +248,7 @@ def test_multiple_unknown_dimensions_on_rollup_count_as_one_unknown_row():
     assert report.leaf_row_count == 0
     assert report.rollup_row_count == 1
     assert report.unknown_row_count == 1
-    assert report.unknown_codes == {"sector": {"8"}, "energy_source": {"BIO"}}
+    assert report.unknown_codes == {"sector": {"95"}, "energy_source": {"ZZZ"}}
     assert [f.check for f in report.findings if f.severity is Severity.WARN] == [
         "unclassified_sector",
         "unclassified_energy_source",
@@ -299,7 +299,7 @@ def test_every_dimension_classifies_into_exactly_one_of_three_states():
     assert classify_geography("PACC") == "rollup"
     assert classify_geography("ZZZZ") == "unknown"
     assert classify_sector("1") == "leaf"
-    assert classify_sector("8") == "unknown"
+    assert classify_sector("95") == "unknown"
 
 
 def test_duplicate_keys_that_survived_deduplication_are_a_hard_failure(duplicates_fixture):
@@ -339,3 +339,85 @@ def test_the_report_serialises_for_the_audit_layer(edge_cases_fixture):
     assert payload["ok"] is True
     assert payload["record_count"] == 11
     assert {f["severity"] for f in payload["findings"]} == {"info"}
+
+
+@pytest.mark.parametrize(
+    "fuel", ["ANT", "BIT", "RC", "SUB", "LIG", "SPV", "STH", "WNS", "WNT", "LFG", "MSB", "DPV"]
+)
+@pytest.mark.parametrize("generation", [None, "0", "-1.25", "2.5"])
+def test_new_leaf_fuels_preserve_generation_and_publication_contract(fuel, generation):
+    from energy_pipeline.load import record_to_stage_row
+
+    record = parse_record(_row(fueltypeid=fuel, generation=generation))
+    assert record.is_leaf
+    assert validate([record]).ok
+    assert aggregate_publish_gate([record]) == []
+    staged = record_to_stage_row(record, "test-run", "source-hash")
+    assert staged[5] == fuel
+    assert staged[6] == (None if generation is None else float(generation))
+    assert staged[7:] == (False, False, False)
+
+
+@pytest.mark.parametrize("sector", ["90", "94", "96", "97", "98", "99"])
+def test_sector_rollup_flags_survive_staging(sector):
+    from energy_pipeline.load import record_to_stage_row
+
+    record = parse_record(_row(sectorid=sector))
+    assert aggregate_publish_gate([record]) == []
+    assert not record.is_leaf
+    assert record_to_stage_row(record, "test-run", "source-hash")[7:] == (False, True, False)
+
+
+def test_new_fuel_components_do_not_double_count_biomass_parents():
+    values = {
+        "LFG": "5",
+        "MSB": "2",
+        "ORW": "3",
+        "WWW": "4",
+        "MLG": "7",
+        "OBW": "5",
+        "WAS": "10",
+        "BIO": "14",
+        "OB2": "3",
+    }
+    records = [parse_record(_row(fueltypeid=k, generation=v)) for k, v in values.items()]
+    assert aggregate_publish_gate(records) == []
+    assert sum(r.generation for r in records if r.is_leaf) == 14
+    assert {r.fueltypeid for r in records if r.is_leaf} == {"LFG", "MSB", "ORW", "WWW"}
+
+
+def test_new_classifications_keep_identical_retry_and_conflicting_duplicates_distinct():
+    record = parse_record(_row(fueltypeid="SPV"))
+    repeated = dedupe([record, record])
+    assert repeated.records == [record]
+    assert repeated.identical_duplicates == 1
+    assert validate(repeated.records, dedupe_result=repeated).ok
+    revised = replace(record, generation=2.0)
+    conflicting = dedupe([record, revised])
+    assert not validate(conflicting.records, dedupe_result=conflicting).ok
+
+
+@pytest.mark.parametrize("field", ["location", "sectorid", "fueltypeid"])
+def test_missing_identifier_remains_a_hard_parse_error(field):
+    row = _row()
+    del row[field]
+    records, errors = parse_records([row])
+    assert records == []
+    assert not validate(records, parse_errors=errors).ok
+
+
+@pytest.mark.parametrize("field", ["location", "sectorid", "fueltypeid"])
+@pytest.mark.parametrize("bad", [None, "", "ZZZ"])
+def test_invalid_identifier_never_passes_publication(field, bad):
+    record = parse_record(_row(**{field: bad}))
+    assert not record.is_leaf
+    assert aggregate_publish_gate([record])
+
+
+def test_residential_small_scale_record_is_valid_but_sector95_still_blocks_batch():
+    residential = parse_record(_row(sectorid="8", fueltypeid="DPV"))
+    unresolved = parse_record(_row(sectorid="95"))
+    assert residential.is_leaf
+    assert aggregate_publish_gate([residential]) == []
+    findings = aggregate_publish_gate([residential, unresolved])
+    assert len(findings) == 1 and "95" in findings[0].message

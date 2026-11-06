@@ -315,9 +315,9 @@ def main() -> int:
     parser.add_argument("--skip-facets", action="store_true")
     args = parser.parse_args()
 
-    settings = Settings.from_env()
+    settings = Settings.from_env(require_api_key=True)
     if not settings.api_key:
-        raise SystemExit("EIA_API_KEY is not set; the client refuses unauthenticated requests")
+        raise SystemExit("EIA_API_KEY is missing from the environment and private credential file")
 
     client = EiaClient(settings)
     ok = True

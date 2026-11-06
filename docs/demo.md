@@ -1,7 +1,9 @@
 # Demo and verification guide
 
-The verified end-to-end demonstration uses **10 synthetic fixture records across
-June–August 2026**. It does not publish a complete month of live EIA data.
+Two demonstrations are verified: **10 synthetic fixture records across
+June–August 2026**, and a bounded real EIA pilot for **Texas, July 2026,
+Electric Utility sector 1** with 31 facts and 13 additive analytical rows.
+Neither demonstrates complete nationwide publication.
 
 The commands below distinguish a runnable offline walkthrough from stateful
 steps requiring a separately prepared disposable environment. The public-snapshot
@@ -53,9 +55,10 @@ ENERGY_TEST_PG=0 .venv/bin/python -m pytest tests/ dags/tests/ metabase/tests/ -
 ```
 
 Keep `tests/integration/test_local_raw_storage.py` in that collection. Tests use
-temporary directories and fake transports/connections. The recorded result was
-549 passed and 41 deliberately skipped PostgreSQL cases after the public-snapshot
-safety changes; future counts can change.
+temporary directories and fake transports/connections. The final audit on 7 November 2026 passed
+779 tests with 41 deliberately skipped PostgreSQL cases. See
+[verification.md](verification.md) for the separate database gate; future counts
+can change.
 
 ## Isolated warehouse demonstration
 
@@ -93,9 +96,29 @@ only analytical tables; it does not execute or verify this ETL walkthrough.
    compare its results to independent SQL before assembling the dashboard.
 10. Verify actual browser charts/tables and preserve sanitized screenshots.
 
-The package reads process environment variables; `Settings.from_env()` does not
-automatically read a dotenv file. The tracked `.env.example` is a reference
-template, not permission to reuse local credentials.
+The package reads process environment variables. Live EIA entry points first use
+a nonempty `EIA_API_KEY`, then lazily read `~/.config/energy-etl/eia.env`. They never
+change the process environment. Fixture extraction, staging and ordinary
+`Settings.from_env()` do not inspect that file. Custom live scripts can use
+`Settings.from_env(require_api_key=True)`; `EiaClient` also resolves a missing key
+on its first request.
+
+The optional private file must belong to the executing user, have mode `0600`
+(or read-only `0400`), and contain one literal `EIA_API_KEY=...` assignment,
+optionally quoted. Blank lines and whole-line comments are supported; shell
+expansion is never performed. The `~/.config/energy-etl` directory must be owned
+by that user with mode `0700`; home/config directories must not be symlinks or
+writable by other users. Symlink, hard-linked, nonregular, oversized and malformed
+credential files are rejected without displaying their contents.
+
+For one-time setup, create the private directory and enter the registered key
+using a local editor or password-manager workflow. Never paste the key into chat,
+shell arguments or the repository. Missing/blank credentials cause live commands
+to stop before HTTP requests; fixture verification needs no key. Airflow resolves
+the file under its executing user's home, not the developer's home.
+
+Other dotenv files are not loaded automatically. The tracked `.env.example` is a
+reference template, not permission to reuse local credentials.
 
 | Configuration | Required choice for a new demonstration |
 |---|---|
@@ -132,10 +155,10 @@ test suite including reconciliation; fixture exclusion is not a production pass.
 
 - An isolated PostgreSQL provisioning procedure reusable on a fresh machine.
 - The Airflow metadata initialization and local-run environment used for verification.
-- Automated transfer/refresh from a newly executed warehouse into reporting.
-  The canonical Compose setup now includes the loopback proxy and a separate
-  static reporting sample. Its fresh reporting installation was verified on
-  5 November 2026, with explicit API dashboard setup; it does not execute ETL/dbt.
+- Automatic warehouse-to-reporting scheduling. The real pilot now has an
+  explicit, tested [manual refresh](reporting.md#real-eia-reporting-snapshot).
+  Initial reporting-database provisioning and Metabase setup remain operator steps.
+  The canonical Compose sample does not execute ETL/dbt/Airflow.
 - A direct Metabase import: the tracked dashboard JSON is a blueprint, not an
   API export, and its filter declarations are not wired to the card queries.
 - An all-green fixture path in `scripts/init_pipeline.py`, which invokes
@@ -192,3 +215,68 @@ production PostgreSQL settings. Once every guard is satisfied, run sequentially:
 This is a state-mutating test suite. Preserve its results for review; a populated
 database is not a safe starting point for another whole-suite run. Disabled or
 skipped tests provide no PostgreSQL verification.
+
+
+## Bounded real EIA execution
+
+Provision your own disposable PostgreSQL 18 warehouse and restricted role; verify
+its identity before applying the tracked schema. Use a new raw namespace and
+isolated Airflow metadata directory. Never target an existing database merely
+because its name resembles an example. The reporting Compose database is separate
+from this source warehouse.
+
+Supply your own registered EIA key through the protected loader described above.
+Explicitly configure `POSTGRES_DSN`, every `DBT_PG_*` field, `RAW_ROOT`,
+`DBT_PROJECT_DIR`, `DBT_PROFILES_DIR`, `AIRFLOW_HOME` and the isolated Airflow
+database/logging configuration. Ensure the virtual environment's `bin` directory
+is on PATH so the DAG can invoke dbt. Do not copy private verification scripts,
+administrator credentials or historical configuration from another machine.
+
+For the bounded live branch, unset `FIXTURE_PATH` and configure:
+
+```bash
+unset FIXTURE_PATH
+export EIA_START_PERIOD=2026-07 EIA_END_PERIOD=2026-07
+export EIA_LOCATION=TX EIA_SECTOR_ID=1
+export EIA_PAGE_SIZE=100 EIA_MAX_PAGES=1
+export EIA_TIMEOUT_SECONDS=30 EIA_MAX_RETRIES=0
+```
+
+`EIA_FUELTYPE_ID` is optional; leave it unset for all returned fuels.
+Both period bounds are required together. The page budget bounds successful
+data pages; retries are separate requests, so the example disables them.
+EIA may revise this historical month; future values or row counts must be
+investigated rather than coerced to the recorded pilot.
+
+After initializing a separate Airflow 3 metadata environment and configuring
+its local DAG folder/bundle, the supported local execution interface is:
+
+```python
+from dags.energy_pipeline_dag import dag
+
+result = dag.test(use_executor=False)
+assert str(result.state) == "success"
+```
+
+This is stateful: it makes API requests, writes immutable raw objects, publishes
+the explicitly selected warehouse and runs four dbt models. It is not an offline
+test, an automatic installer or scheduler startup. Do not execute it until every
+connection and storage boundary is independently verified.
+
+The recorded pilot produced 31 core facts, 13 utility-scale analytical rows,
+11,036,928.08 MWh and a 0.00 MWh scoped difference. Verify raw hashes, unique
+business keys, accepted audit provenance, dimension joins and classifications,
+unit conversion, and source ALL versus the additive sum independently.
+Current facts can advance to a newer observation's provenance while measures and
+business keys stay unchanged; that is intentional idempotency behavior.
+
+Run the twelve applicable dbt tests separately with the exact national test
+excluded. Then follow the [real reporting guide](reporting.md#real-eia-reporting-snapshot)
+to provision separate SELECT-only reporting storage, invoke the public refresh
+script, and create the five questions using your own Metabase administrator.
+The dashboard blueprints do not automatically create application objects.
+
+No private local helper is a prerequisite. A fresh-machine full-stack deployment
+has not been verified; the manual provisioning and Airflow setup remain explicit
+reproduction work. The retained pilot and the complete 17,423-row diagnostic have
+different scopes. Sector 95 and national reconciliation remain unresolved.

@@ -49,7 +49,7 @@ def test_recognized_geography_does_not_claim_publication(verifier, monkeypatch, 
 
 
 @pytest.mark.parametrize(
-    "dimension, code", [("location", "ZZ"), ("sectorid", "8"), ("fueltypeid", "BIO")]
+    "dimension, code", [("location", "ZZ"), ("sectorid", "95"), ("fueltypeid", "ZZZ")]
 )
 def test_unknown_facet_blocks_eligibility(verifier, monkeypatch, capsys, dimension, code):
     _facets(verifier, monkeypatch, **{dimension: {code}})

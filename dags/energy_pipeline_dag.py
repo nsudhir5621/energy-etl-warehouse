@@ -61,8 +61,8 @@ with DAG(
         from energy_pipeline.extract import PeriodWindow, extract, extract_fixture
         from energy_pipeline.storage import LocalObjectStore, RawSink
 
-        settings = Settings.from_env()
         fixture_path = os.environ.get("FIXTURE_PATH")
+        settings = Settings.from_env(require_api_key=not bool(fixture_path))
 
         if fixture_path:
             # Offline mode — use the fixture instead of the live API.
@@ -70,25 +70,57 @@ with DAG(
         else:
             if not settings.api_key:
                 raise ValueError(
-                    "EIA_API_KEY is not set and FIXTURE_PATH is not set. Cannot run extraction."
+                    "EIA_API_KEY is missing from environment/private file; FIXTURE_PATH is not set."
                 )
             from energy_pipeline.client import EiaClient
             from energy_pipeline.extract import ApiSource
 
+            # Explicit windows and facets allow a bounded live run without
+            # changing the default monthly lookback or fixture behavior.
+            start = os.environ.get("EIA_START_PERIOD")
+            end = os.environ.get("EIA_END_PERIOD")
+            if (start is None) != (end is None):
+                raise ValueError("EIA_START_PERIOD and EIA_END_PERIOD must be supplied together")
+            max_pages = int(os.environ.get("EIA_MAX_PAGES", "10000"))
+            if max_pages < 1:
+                raise ValueError("EIA_MAX_PAGES must be positive")
+            facets = {
+                facet: os.environ[variable]
+                for facet, variable in (
+                    ("location", "EIA_LOCATION"),
+                    ("sectorid", "EIA_SECTOR_ID"),
+                    ("fueltypeid", "EIA_FUELTYPE_ID"),
+                )
+                if variable in os.environ
+            }
+            period_window = PeriodWindow(start, end) if start is not None else None
             client = EiaClient(settings)
-            # Discovery sends no window bounds; the placeholder only satisfies
-            # ApiSource's constructor until the real lookback is known.
-            discovery_source = ApiSource(client, settings, PeriodWindow("1970-01", "1970-01"))
-            # latest_period() tells us the newest available period; we
-            # back-fill 24 months (settings.lookback_months) by default.
-            period_window = PeriodWindow.lookback(
-                discovery_source.latest_period() or "1970-01",
-                settings.lookback_months,
-            )
-            source = ApiSource(client, settings, period_window)
-            result = extract(source, settings, period_window)
+            if period_window is None:
+                discovery_source = ApiSource(
+                    client, settings, PeriodWindow("1970-01", "1970-01"), facets=facets
+                )
+                period_window = PeriodWindow.lookback(
+                    discovery_source.latest_period() or "1970-01", settings.lookback_months
+                )
+            source = ApiSource(client, settings, period_window, facets=facets)
+            result = extract(source, settings, period_window, max_pages=max_pages)
 
         store = LocalObjectStore(root=settings.raw_root)
+        if not fixture_path:
+            from energy_pipeline.raw import canonical_json
+
+            # Create-only request receipt; never includes credentials. Write it
+            # before the manifest completion marker, alongside immutable pages.
+            scope = {
+                "run_id": result.batch.run_id,
+                "content_hash": result.batch.content_hash,
+                "window": period_window.as_params(),
+                "facets": facets,
+                "max_pages": max_pages,
+            }
+            store.put_if_absent(
+                f"{result.batch.namespace}/source_scope.json", canonical_json(scope).encode()
+            )
         upload = RawSink(store).write(result.batch)
 
         context["ti"].xcom_push(key="run_id", value=upload.run_id)

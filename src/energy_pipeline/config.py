@@ -1,17 +1,16 @@
-"""Configuration, loaded from the environment.
+"""Environment configuration with lazy, protected EIA credential fallback.
 
-The API key is read from the ``EIA_API_KEY`` environment variable and is the only
-credential this package uses. It is never written to a config file, never
-logged, and never given a default. ``Settings.api_key`` is ``None`` when unset,
-and the client refuses to make a request without it — failing loudly at the
-boundary beats sending an unauthenticated request and being rate-limited.
+Live entry points prefer EIA_API_KEY, then ~/.config/energy-etl/eia.env.
+Offline configuration never reads the private file. No credential is defaulted,
+written, logged or included in Settings repr; missing keys remain None.
 """
 
 from __future__ import annotations
 
 import os
+import stat
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -43,11 +42,96 @@ def _env(env: Mapping[str, str], key: str, default: Any, cast: Callable[[str], A
         raise ConfigError(f"{key} is not a valid {cast.__name__}: {raw!r}") from exc
 
 
+def load_api_key(env: Mapping[str, str] | None = None) -> str | None:
+    """Resolve a live credential without changing the process environment.
+
+    Call only for live operations. A nonempty environment value wins without
+    inspecting the optional private file. File syntax is one literal
+    EIA_API_KEY assignment, optionally quoted, plus blank/comment lines.
+    """
+    env = os.environ if env is None else env
+    if key := env.get("EIA_API_KEY"):
+        return key
+
+    home = Path.home()
+    path = home / ".config" / "energy-etl" / "eia.env"
+    try:
+        source = path.lstat()
+    except FileNotFoundError:
+        return None
+    except OSError:
+        raise ConfigError("private EIA credential file cannot be inspected") from None
+
+    if not hasattr(os, "getuid") or not hasattr(os, "O_NOFOLLOW"):
+        raise ConfigError("private EIA credential protection requires a POSIX filesystem")
+    uid = os.getuid()
+    try:
+        for directory in (home, home / ".config", path.parent):
+            metadata = directory.lstat()
+            if (
+                not stat.S_ISDIR(metadata.st_mode)
+                or metadata.st_uid != uid
+                or stat.S_IMODE(metadata.st_mode) & 0o022
+            ):
+                raise ConfigError("private EIA credential directory is unsafe")
+        if stat.S_IMODE(path.parent.stat().st_mode) != 0o700:
+            raise ConfigError("private EIA credential directory must have mode 0700")
+        if (
+            not stat.S_ISREG(source.st_mode)
+            or source.st_uid != uid
+            or source.st_nlink != 1
+            or stat.S_IMODE(source.st_mode) not in (0o400, 0o600)
+            or source.st_size > 4096
+        ):
+            raise ConfigError("private EIA credential file must be owner-only and regular")
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with os.fdopen(fd, "rb") as stream:
+            opened = os.fstat(stream.fileno())
+            if (opened.st_dev, opened.st_ino, opened.st_uid, opened.st_mode, opened.st_nlink) != (
+                source.st_dev,
+                source.st_ino,
+                source.st_uid,
+                source.st_mode,
+                source.st_nlink,
+            ):
+                raise ConfigError("private EIA credential file changed during loading")
+            raw = stream.read(4097)
+            after = os.fstat(stream.fileno())
+            if (
+                len(raw) > 4096
+                or after.st_size != source.st_size
+                or after.st_mtime_ns != source.st_mtime_ns
+                or (after.st_uid, after.st_mode, after.st_nlink)
+                != (source.st_uid, source.st_mode, source.st_nlink)
+            ):
+                raise ConfigError("private EIA credential file changed during loading")
+        text = raw.decode("utf-8")
+    except (OSError, UnicodeError):
+        raise ConfigError("private EIA credential file cannot be read securely") from None
+
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    lines = [line for line in lines if not line.startswith("#")]
+    if not lines:
+        return None
+    if len(lines) != 1 or not lines[0].startswith("EIA_API_KEY="):
+        raise ConfigError("private EIA credential file requires one EIA_API_KEY assignment")
+    key = lines[0].partition("=")[2].strip()
+    if key.startswith(("'", '"')):
+        if len(key) < 2 or key[-1] != key[0]:
+            raise ConfigError("private EIA credential assignment has invalid quoting")
+        key = key[1:-1]
+    if not key:
+        return None
+    if not key.isascii() or not all(char.isalnum() or char in "-_" for char in key):
+        raise ConfigError("private EIA credential assignment has invalid characters")
+    return key
+
+
 @dataclass(frozen=True)
 class Settings:
     """Runtime settings. Frozen so a run cannot mutate its own configuration."""
 
-    api_key: str | None
+    api_key: str | None = field(repr=False)
     base_url: str = DEFAULT_BASE_URL
     route: str = DEFAULT_ROUTE
     frequency: str = DEFAULT_FREQUENCY
@@ -76,7 +160,9 @@ class Settings:
     raw_prefix: str = "raw/eia"
 
     @classmethod
-    def from_env(cls, env: Mapping[str, str] | None = None) -> Settings:
+    def from_env(
+        cls, env: Mapping[str, str] | None = None, *, require_api_key: bool = False
+    ) -> Settings:
         env = os.environ if env is None else env
         page_size = _env(env, "EIA_PAGE_SIZE", MAX_PAGE_SIZE, int)
         if not 1 <= page_size <= MAX_PAGE_SIZE:
@@ -91,7 +177,7 @@ class Settings:
         if lookback < 1:
             raise ConfigError("EIA_LOOKBACK_MONTHS must be >= 1")
         return cls(
-            api_key=env.get("EIA_API_KEY") or None,
+            api_key=load_api_key(env) if require_api_key else env.get("EIA_API_KEY") or None,
             base_url=_env(env, "EIA_BASE_URL", DEFAULT_BASE_URL, str).rstrip("/"),
             route=_env(env, "EIA_ROUTE", DEFAULT_ROUTE, str).strip("/"),
             frequency=_env(env, "EIA_FREQUENCY", DEFAULT_FREQUENCY, str),

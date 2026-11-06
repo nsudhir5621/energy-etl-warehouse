@@ -28,7 +28,7 @@ from typing import Any
 
 import requests
 
-from .config import Settings
+from .config import Settings, load_api_key
 from .errors import (
     ClientSourceError,
     ExtractionError,
@@ -78,6 +78,7 @@ class EiaClient:
         jitter: Callable[[], float] = lambda: random.uniform(0.0, 0.25),
     ) -> None:
         self._settings = settings
+        self._api_key = settings.api_key
         self._session = session or requests.Session()
         self._sleep = sleep
         self._clock = clock
@@ -95,15 +96,17 @@ class EiaClient:
 
     def get(self, params: Mapping[str, Any]) -> dict[str, Any]:
         """Fetch one page. Retries transient failures according to their class."""
-        if not self._settings.api_key:
+        if not self._api_key:
+            self._api_key = load_api_key()
+        if not self._api_key:
             # Failing here is deliberate. An unauthenticated request is a wasted
             # round trip that also lands in the rate limiter's error path.
             raise ClientSourceError(
-                "EIA_API_KEY is not set; refusing to make an unauthenticated request"
+                "EIA_API_KEY is not set in environment/private file; refusing request"
             )
 
         request_params = {k: v for k, v in params.items() if v is not None}
-        request_params["api_key"] = self._settings.api_key
+        request_params["api_key"] = self._api_key
 
         attempt = 0
         while True:
@@ -143,10 +146,14 @@ class EiaClient:
                 timeout=self._settings.timeout_seconds,
                 headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
             )
-        except requests.Timeout as exc:
-            raise TransientSourceError(f"request timed out: {exc}") from exc
-        except requests.RequestException as exc:
-            raise TransientSourceError(f"transport error: {exc}") from exc
+        except requests.Timeout:
+            raise TransientSourceError(
+                "request timed out; credential-bearing details omitted"
+            ) from None
+        except requests.RequestException:
+            raise TransientSourceError(
+                "transport error; credential-bearing details omitted"
+            ) from None
         finally:
             self._last_request_at = self._clock()
 

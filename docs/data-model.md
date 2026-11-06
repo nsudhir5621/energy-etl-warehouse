@@ -2,12 +2,12 @@
 
 **Current implementation:** the monthly grain, dimensional warehouse and publication
 rules below are implemented. dbt contains four models: staging and intermediate
-views, plus monthly-generation and reconciliation mart tables. Complete dimension
-classification and production reconciliation remain unresolved.
+views, plus monthly-generation and reconciliation mart tables. Sector 95 classification and production reconciliation remain unresolved;
+see the [B4.1 source update](source-data.md#b41-live-classification-evidence--5-november-2026).
 
 Dated source checks below are historical reports, not fresh verification results.
 See [source-data.md](source-data.md) for their evidence limits and
-[portfolio.md](portfolio.md) for the recorded fixture-based verification scope.
+[portfolio.md](portfolio.md) for the fixture and bounded real-data verification scope.
 
 ---
 
@@ -59,10 +59,23 @@ Surrogate keys exist only on dimensions, which are conformed and joined.
 |---|---|---|---|
 | `dim_date` | one calendar month | `date_month` (`YYYY-MM-01`) | n/a — no rollup concept |
 | `dim_geography` | one reporting geography | `geography_sk` (surrogate) | `is_rollup` — 14 accepted strings: 8 non-Pacific division codes, `US`, and 5 Pacific spellings |
-| `dim_sector` | one EIA sector | `sector_sk` (surrogate) | `is_rollup` — FALSE for the seven currently classified seed sectors; additional codes remain UNKNOWN |
-| `dim_energy_source` | one energy source | `energy_source_sk` (surrogate) | `is_aggregate` — 12 confirmed aggregate codes (incl. `SUN`, `WND`, `COL` reclassified live) |
+| `dim_sector` | one EIA sector | `sector_sk` (surrogate) | `is_rollup` — FALSE for leaf codes 1–8; TRUE for 90/94/96–99; 95 remains UNKNOWN |
+| `dim_energy_source` | one energy source | `energy_source_sk` (surrogate) | `is_aggregate` — 19 non-additive source totals/overlapping alternatives; 26 additive components |
 
 No plant dimension: the API does not expose plant, and the fact grain does not need one.
+
+### Referential integrity boundary
+
+The tracked schema enforces primary/business keys but defines **no physical foreign
+keys** from facts to dimensions or audit. The loader upserts dimensions and facts
+inside one publication transaction and checks accepted run/hash provenance.
+Independent pilot checks found zero unmatched dimension/audit rows, zero flag
+mismatches and zero duplicate fact or mart keys.
+
+These logical checks support the verified application loading path. They are not
+database-enforced protection against arbitrary direct SQL writes; maintenance
+users remain trusted. Physical foreign keys and broader enforcement would require
+a separately reviewed schema change, not a claim that such constraints exist today.
 No annual dimension: the fact is monthly.
 
 ## 4. The rollup contract
@@ -77,13 +90,14 @@ The source mixes **leaf values and rollup values inside the same facets**:
   comments. These 66 accepted strings are not a verified current API facet list;
   the historical facet count was 64 (see [source-data.md](source-data.md#pacific-geography-vocabulary--historical-report-and-current-classifier)).
   Every other string is `UNKNOWN`.
-- `fueltypeid` — 15 leaf energy sources alongside 12 aggregate codes (`ALL`, `AOR`,
-  `SUN`, `WND`, `COL`, `COW`, `TSN`, `TPV`, `FOS`, `REN`, `NGO`, `PET`). `SUN`, `WND`,
-  and `COL` were reclassified from leaf to aggregate after the 2026-10-09 live
-  verification proved they are rollups (see §4 notes). 18 codes remain `UNKNOWN`.
-- `sectorid` — codes `1`–`7` are the currently classified leaf seed, matching the
-  seven-sector vocabulary observed in the historical bulk-file investigation.
-  This is not the complete API vocabulary: `8`, `90` and `94`–`99` remain `UNKNOWN`.
+- `fueltypeid` — 26 additive components and 19 non-additive totals/overlapping
+  alternatives cover all 45 captured API fuel members. `MLG` is a rollup of
+  `LFG + MSB`, not an additional leaf. `OB2` and `BIS` retain separate source
+  identities but are excluded from the canonical additive basis. See the
+  [captured classification evidence](../data/fixtures/eia/classification_evidence.json).
+- `sectorid` — `1–8` are leaf components. `90, 94, 96, 97, 98, 99` are
+  overlapping totals. `95` remains `UNKNOWN`: its "Coal Consumption" label does
+  not establish the meaning of its observed generation values.
 
 A naive `SUM(generation) GROUP BY period` is therefore wrong **twice over**: roughly 3×
 from double-counting leaf geographies with their divisions and `US`, and again from
@@ -96,18 +110,18 @@ numbers, which is what makes them dangerous.
    legitimately want `US`, `ALL`, or a census division directly.
 2. Rollup-ness is a **dimension attribute**, not a row filter at ingest.
 3. **Leaf-side aggregate models filter to positively classified leaf members** and
-   are tested for it. The reconciliation mart separately selects source rollup totals.
+   are tested for it. The current monthly mart is utility-scale and explicitly
+   selects sectors `1–7` and excludes `DPV` (estimated small-scale solar).
+   Residential/DPV remain valid leaves in core/staging; the reconciliation mart
+   retains utility-scale source totals.
 4. `US` + all sectors + `ALL` is the designated **reconciliation total**: a test asserts
    that summing the base side reproduces it, within a tolerance. This converts the
    #1 critical risk from "hope it's right" into "a test that fails loudly."
-5. `dim_sector.is_rollup` is retained even though the seven currently classified seed
-   sectors have FALSE values. That flag alone is not proof of leaf membership.
-   An earlier live-source investigation reported 15 sector members (`1–7` plus
-   `8`, `90`, `94`–`99`), but no saved, independently inspectable sector-facet
-   response was found. The extra eight codes retain `UNKNOWN`; their reported
-   labels are not independently verified, and their leaf/rollup membership and
-   numerical aggregation relationships have not been established. The earlier
-   uniqueness scan reported observing only sectors `1`–`7` in its selected month.
+5. FALSE rollup flags alone are not proof of leaf membership. Source code 95
+   remains UNKNOWN and blocks the whole run before core writes. The full API
+   facet labels are now captured in the public evidence fixture. Historical
+   Phase 0 statements about seven sectors and unavailable facet evidence record
+   the earlier audit, not the current classification.
 
 ### 4a. Three-state classification: leaf, rollup, unknown
 

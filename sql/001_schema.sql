@@ -1,7 +1,7 @@
--- Phase 3: PostgreSQL warehouse schema (Stage 1 — infrastructure only)
+-- PostgreSQL source warehouse schema.
 -- Apply only to an approved, identity-verified disposable database:
 -- psql "$POSTGRES_DSN" -v ON_ERROR_STOP=1 --single-transaction -f sql/001_schema.sql
--- The repository Compose example provides Metabase, not PostgreSQL.
+-- Compose provides separate reporting PostgreSQL/Metabase; it does not initialize this source warehouse.
 
 -- Four schemas, created idempotently. `marts` is an empty placeholder for
 -- Phase 4 (dbt analytical models). It is created now so the schema boundary
@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS core.dim_geography (
     is_rollup    BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- dim_sector — seven currently classified leaf codes (1–7), with FALSE rollup flags.
--- Eight additional codes were historically reported; they remain UNKNOWN until curated.
+-- dim_sector — eight leaf codes (1–8), six curated totals, and UNKNOWN code 95.
+-- FALSE rollup flags alone do not establish classification; publication gates UNKNOWN.
 CREATE TABLE IF NOT EXISTS core.dim_sector (
     sector_sk    SERIAL PRIMARY KEY,
     sectorid     TEXT UNIQUE NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS core.dim_sector (
     is_rollup    BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- dim_energy_source — 15 leaf + 12 aggregate; is_aggregate flags the latter
+-- dim_energy_source — 26 additive + 19 non-additive representations; flags exclude the latter
 CREATE TABLE IF NOT EXISTS core.dim_energy_source (
     energy_source_sk SERIAL PRIMARY KEY,
     fueltypeid   TEXT UNIQUE NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS core.fact_generation (
     PRIMARY KEY (period, location, sectorid, fueltypeid)
 ) PARTITION BY RANGE (period);
 
--- Index on the columns dashboards filter/join on (CLAUDE.md: data-model §13.4)
+-- Index on the fact columns used for analytical filtering and joins (docs/data-model.md).
 CREATE INDEX IF NOT EXISTS idx_fact_generation_dim_lookup
     ON core.fact_generation (location, sectorid, fueltypeid);
 

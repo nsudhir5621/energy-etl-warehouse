@@ -76,6 +76,180 @@ def test_settings_are_frozen_so_a_run_cannot_mutate_its_own_configuration():
         settings.lookback_months = 99  # type: ignore[misc]
 
 
+@pytest.fixture
+def private_api_key_file(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    monkeypatch.delenv("EIA_API_KEY", raising=False)
+    directory = tmp_path / ".config" / "energy-etl"
+    directory.mkdir(parents=True, mode=0o700)
+    path = directory / "eia.env"
+    path.write_text("EIA_API_KEY=file-test-key\n")
+    path.chmod(0o600)
+    return path
+
+
+def test_private_key_is_loaded_only_for_live_configuration(private_api_key_file):
+    assert Settings.from_env({}).api_key is None
+    assert Settings.from_env({}, require_api_key=True).api_key == "file-test-key"
+
+
+def test_environment_key_takes_precedence_without_opening_private_file(
+    private_api_key_file, monkeypatch
+):
+    from pathlib import Path
+
+    private_api_key_file.chmod(0o666)
+
+    def forbidden_home(cls):
+        pytest.fail("Environment credentials must bypass private-file inspection")
+
+    monkeypatch.setattr(Path, "home", classmethod(forbidden_home))
+    env = {"EIA_API_KEY": "environment-test-key"}
+    assert Settings.from_env(env, require_api_key=True).api_key == "environment-test-key"
+    assert env == {"EIA_API_KEY": "environment-test-key"}
+
+
+def test_file_loading_does_not_change_environment(private_api_key_file, monkeypatch):
+    import os
+
+    monkeypatch.setenv("EIA_API_KEY", "")
+    assert Settings.from_env(require_api_key=True).api_key == "file-test-key"
+    assert os.environ["EIA_API_KEY"] == ""
+
+
+def test_missing_private_file_does_not_invent_credentials(private_api_key_file):
+    private_api_key_file.unlink()
+    assert Settings.from_env({}, require_api_key=True).api_key is None
+
+
+@pytest.mark.parametrize("contents", ["", "# no credential\n", "EIA_API_KEY=\n"])
+def test_empty_private_configuration_has_no_credential(private_api_key_file, contents):
+    private_api_key_file.write_text(contents)
+    assert Settings.from_env({}, require_api_key=True).api_key is None
+
+
+@pytest.mark.parametrize("quote", ["", "'", '"'])
+def test_private_key_accepts_one_literal_assignment(private_api_key_file, quote):
+    private_api_key_file.write_text(
+        f"# private EIA credential\nEIA_API_KEY={quote}file-test-key{quote}\n"
+    )
+    assert Settings.from_env({}, require_api_key=True).api_key == "file-test-key"
+
+
+@pytest.mark.parametrize("mode", [0o644, 0o640, 0o660, 0o700])
+def test_private_key_rejects_unsafe_permissions(private_api_key_file, mode):
+    private_api_key_file.chmod(mode)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_read_only_owner_private_key_is_supported(private_api_key_file):
+    private_api_key_file.chmod(0o400)
+    assert Settings.from_env({}, require_api_key=True).api_key == "file-test-key"
+
+
+def test_private_key_rejects_nonprivate_directory(private_api_key_file):
+    private_api_key_file.parent.chmod(0o755)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_private_key_rejects_symlink_file(private_api_key_file):
+    target = private_api_key_file.with_suffix(".original")
+    private_api_key_file.rename(target)
+    private_api_key_file.symlink_to(target)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_private_key_rejects_symlink_directory(private_api_key_file):
+    directory = private_api_key_file.parent
+    target = directory.with_name("original")
+    directory.rename(target)
+    directory.symlink_to(target, target_is_directory=True)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_private_key_rejects_nonregular_file(private_api_key_file):
+    import os
+
+    private_api_key_file.unlink()
+    os.mkfifo(private_api_key_file, 0o600)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_private_key_rejects_wrong_owner(private_api_key_file, monkeypatch):
+    import energy_pipeline.config as config
+
+    actual_uid = config.os.getuid()
+    monkeypatch.setattr(config.os, "getuid", lambda: actual_uid + 1)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+@pytest.mark.parametrize(
+    "contents",
+    [
+        "OTHER_KEY=sensitive-test-value\n",
+        "EIA_API_KEY=sensitive-test-value\nEIA_API_KEY=another-key\n",
+        "EIA_API_KEY='sensitive-test-value\n",
+        "EIA_API_KEY=sensitive test value\n",
+    ],
+)
+def test_malformed_private_credentials_fail_without_disclosing_contents(
+    private_api_key_file, contents
+):
+    private_api_key_file.write_text(contents)
+    with pytest.raises(ConfigError, match="credential") as exc:
+        Settings.from_env({}, require_api_key=True)
+    assert "sensitive" not in str(exc.value)
+
+
+def test_private_key_rejects_invalid_encoding_without_disclosing_contents(private_api_key_file):
+    private_api_key_file.write_bytes(b"EIA_API_KEY=sensitive-test-value\xff")
+    with pytest.raises(ConfigError, match="credential") as exc:
+        Settings.from_env({}, require_api_key=True)
+    assert "sensitive" not in str(exc.value)
+
+
+def test_private_key_rejects_oversized_file(private_api_key_file):
+    private_api_key_file.write_text("EIA_API_KEY=" + "x" * 4096)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_private_key_rejects_hard_links(private_api_key_file):
+    import os
+
+    os.link(private_api_key_file, private_api_key_file.with_suffix(".linked"))
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_private_key_rechecks_open_descriptor_permissions(private_api_key_file, monkeypatch):
+    import energy_pipeline.config as config
+
+    original_open = config.os.open
+
+    def change_permissions(path, *args, **kwargs):
+        if path == private_api_key_file:
+            private_api_key_file.chmod(0o644)
+        return original_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(config.os, "open", change_permissions)
+    with pytest.raises(ConfigError, match="credential"):
+        Settings.from_env({}, require_api_key=True)
+
+
+def test_settings_repr_does_not_expose_api_key(private_api_key_file):
+    settings = Settings.from_env({"EIA_API_KEY": "sensitive-test-value"})
+    assert "sensitive-test-value" not in repr(settings)
+
+
 # -- period arithmetic ---------------------------------------------------------
 
 

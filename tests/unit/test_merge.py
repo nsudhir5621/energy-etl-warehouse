@@ -63,7 +63,7 @@ def _published_row(staged, audit):
 KNOWN_LEAF_CODES = [("AK", "1", "NG"), ("TX", "7", "WND")]
 KNOWN_ROLLUP_CODES = [("US", "1", "ALL"), ("NEW", "1", "AOR")]
 # Unknown codes (would block the publish gate)
-UNKNOWN_CODES = [("ZZ", "8", "BIO")]
+UNKNOWN_CODES = [("ZZ", "95", "ZZZ")]
 
 
 class FakeCursor:

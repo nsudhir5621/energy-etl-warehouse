@@ -9,7 +9,7 @@ Usage:
     python scripts/smoke_test_api.py --start 2026-07 --end 2026-07 \\
         --page-size 5000 --max-pages 10 --max-attempts 30
 
-Requires EIA_API_KEY in the environment.
+Uses EIA_API_KEY, then the protected ~/.config/energy-etl/eia.env fallback.
 """
 
 from __future__ import annotations
@@ -128,9 +128,9 @@ def main() -> int:
         return 2
 
     # --- 2. Build settings from env (reads EIA_API_KEY) ---
-    env_settings = Settings.from_env()
+    env_settings = Settings.from_env(require_api_key=True)
     if not env_settings.api_key:
-        log.error("EIA_API_KEY is not set in the environment.")
+        log.error("EIA_API_KEY is missing from the environment and private credential file.")
         return 2
 
     settings = Settings(

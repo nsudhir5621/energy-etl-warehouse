@@ -1,0 +1,71 @@
+{
+  "name": "Texas Electricity Generation — July 2026 (Real EIA Data)",
+  "description": "Real EIA data, Texas Electric Utility sector 1 only, July 2026. Read-only reporting snapshot of verified warehouse/dbt results; manual refresh, no live warehouse connection or scheduled refresh. Fuel sums use additive leaves; zeros and negatives are preserved. National publication remains blocked. No interactive filters are configured.",
+  "data_source_kind": "manual_reporting_snapshot",
+  "cards": [
+    {
+      "name": "Reconciled generation — Electric Utility sector 1",
+      "sql": "metabase/real_data/cards/01_total.sql",
+      "display": "scalar",
+      "row": 0,
+      "col": 0,
+      "size_x": 8,
+      "size_y": 8,
+      "visualization_settings": {
+        "scalar.decimals": 2,
+        "scalar.suffix": " MWh"
+      }
+    },
+    {
+      "name": "Additive generation by fuel code",
+      "sql": "metabase/real_data/cards/02_fuel.sql",
+      "display": "bar",
+      "row": 8,
+      "col": 0,
+      "size_x": 14,
+      "size_y": 12,
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Fuel code"
+        ],
+        "graph.metrics": [
+          "Generation (MWh)"
+        ],
+        "graph.flip_x_and_y_axis": true,
+        "graph.show_values": true,
+        "graph.show_goal": false
+      }
+    },
+    {
+      "name": "Source → warehouse → dbt reconciliation",
+      "sql": "metabase/real_data/cards/03_checks.sql",
+      "display": "table",
+      "row": 0,
+      "col": 8,
+      "size_x": 16,
+      "size_y": 8,
+      "visualization_settings": {}
+    },
+    {
+      "name": "Measured zeros and negative generation",
+      "sql": "metabase/real_data/cards/04_signed.sql",
+      "display": "table",
+      "row": 8,
+      "col": 14,
+      "size_x": 10,
+      "size_y": 6,
+      "visualization_settings": {}
+    },
+    {
+      "name": "Scope, source observation and snapshot freshness",
+      "sql": "metabase/real_data/cards/05_scope.sql",
+      "display": "table",
+      "row": 14,
+      "col": 14,
+      "size_x": 10,
+      "size_y": 9,
+      "visualization_settings": {}
+    }
+  ],
+  "width": "full"
+}

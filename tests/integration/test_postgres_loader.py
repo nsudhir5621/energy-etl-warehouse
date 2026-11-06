@@ -375,9 +375,9 @@ def test_newer_revision_commits_and_older_replay_is_rejected(pg_config):
     "changes, warning",
     [
         ({"location": "ZZ"}, "geography"),
-        ({"location": "US", "sectorid": "8"}, "sector"),
-        ({"location": "US", "fueltypeid": "BIO"}, "energy_source"),
-        ({"sectorid": "8", "fueltypeid": "ALL"}, "sector"),
+        ({"location": "US", "sectorid": "95"}, "sector"),
+        ({"location": "US", "fueltypeid": "ZZZ"}, "energy_source"),
+        ({"sectorid": "95", "fueltypeid": "ALL"}, "sector"),
     ],
 )
 def test_unknown_codes_block_publication_before_core_writes(pg_config, changes, warning):

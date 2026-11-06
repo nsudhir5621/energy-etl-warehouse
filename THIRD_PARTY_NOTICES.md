@@ -20,8 +20,9 @@ claimed as original MIT-licensed project content. No EIA endorsement is implied.
 
 ## Metabase reporting assets
 
-This snapshot includes the project's six SQL questions and descriptive dashboard
-blueprint. The Metabase interface screenshot is omitted; the genuine capture is
+This snapshot includes six fixture SQL questions, five bounded real-data SQL
+questions and two descriptive dashboard blueprints. Metabase interface screenshots
+are omitted; the genuine captures are
 retained with private verification evidence. Metabase software, interface elements,
 name and logos retain their upstream rights and are not relicensed under this
 project's MIT grant.

@@ -9,3 +9,4 @@ from {{ ref('mart_monthly_generation') }}
 where is_rollup_geography
    or is_rollup_sector
    or is_rollup_energy_source
+   or fueltypeid = 'DPV'

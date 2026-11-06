@@ -7,6 +7,7 @@ README.md
 THIRD_PARTY_NOTICES.md
 dags/energy_pipeline_dag.py
 dags/tests/test_dag_structure.py
+data/fixtures/eia/classification_evidence.json
 data/fixtures/eia/duplicates.json
 data/fixtures/eia/edge_cases.json
 data/fixtures/eia/empty_window.json
@@ -37,6 +38,7 @@ docs/demo.md
 docs/portfolio.md
 docs/reporting.md
 docs/source-data.md
+docs/verification.md
 metabase/cards/01_total_generation_by_period.sql
 metabase/cards/02_generation_by_state.sql
 metabase/cards/03_generation_by_fuel.sql
@@ -44,9 +46,18 @@ metabase/cards/04_sector_breakdown.sql
 metabase/cards/05_reconciliation_check.sql
 metabase/cards/06_generation_trend.sql
 metabase/dashboards/energy_generation_dashboard.json
+metabase/dashboards/texas_real_eia_dashboard.json
+metabase/real_data/cards/01_total.sql
+metabase/real_data/cards/02_fuel.sql
+metabase/real_data/cards/03_checks.sql
+metabase/real_data/cards/04_signed.sql
+metabase/real_data/cards/05_scope.sql
+metabase/real_data/reporting.sql
 metabase/tests/test_dashboard.py
+metabase/tests/test_real_dashboard.py
 pyproject.toml
 scripts/init_pipeline.py
+scripts/refresh_real_reporting.py
 scripts/run_in_wsl.py
 scripts/smoke_test_api.py
 scripts/verify_api_contract.py
@@ -78,6 +89,7 @@ tests/unit/test_pagination.py
 tests/unit/test_raw_metadata.py
 tests/unit/test_raw_storage.py
 tests/unit/test_records.py
+tests/unit/test_refresh_real_reporting.py
 tests/unit/test_run_in_wsl_env.py
 tests/unit/test_smoke_test_api.py
 tests/unit/test_staging.py

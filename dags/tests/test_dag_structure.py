@@ -180,6 +180,7 @@ class TestExtractPersistence:
             mock_sink_cls.return_value.write.return_value = mock_upload
 
             result = call(**mock_context)
+            mock_settings.assert_called_once_with(require_api_key=False)
 
             # RawSink.write must have been called with the batch
             mock_sink_cls.return_value.write.assert_called_once_with(mock_result.batch)
@@ -301,7 +302,9 @@ class TestLiveExtraction:
         )
 
         with (
-            patch("energy_pipeline.config.Settings.from_env", return_value=settings),
+            patch(
+                "energy_pipeline.config.Settings.from_env", return_value=settings
+            ) as settings_loader,
             patch("energy_pipeline.client.EiaClient", autospec=True) as client_cls,
             patch("energy_pipeline.extract.extract", autospec=True, return_value=result) as extract,
             patch("energy_pipeline.extract.extract_fixture") as fixture_extract,
@@ -314,6 +317,7 @@ class TestLiveExtraction:
 
             assert dag.get_task("extract").python_callable(ti=ti) == "offline-run"
 
+            settings_loader.assert_called_once_with(require_api_key=True)
             client_cls.assert_called_once_with(settings)
             client.get.assert_called_once_with(
                 {
@@ -410,3 +414,83 @@ class TestBackfillSupport:
     def test_dag_not_paused(self, dag):
         """DAG should not be paused by default."""
         assert getattr(dag, "is_paused", False) is False
+
+
+class TestBoundedLiveScope:
+    def test_explicit_live_window_and_facets_skip_discovery(self, dag, monkeypatch):
+        from unittest.mock import MagicMock, patch
+
+        from energy_pipeline.config import Settings
+
+        monkeypatch.delenv("FIXTURE_PATH", raising=False)
+        for key, value in {
+            "EIA_START_PERIOD": "2026-07",
+            "EIA_END_PERIOD": "2026-07",
+            "EIA_LOCATION": "TX",
+            "EIA_SECTOR_ID": "1",
+            "EIA_MAX_PAGES": "1",
+        }.items():
+            monkeypatch.setenv(key, value)
+        settings = Settings(api_key="offline-key", page_size=50)
+        result = MagicMock()
+        with (
+            patch("energy_pipeline.config.Settings.from_env", return_value=settings),
+            patch("energy_pipeline.client.EiaClient", autospec=True) as client,
+            patch("energy_pipeline.extract.extract", return_value=result) as extract,
+            patch("energy_pipeline.storage.LocalObjectStore") as store,
+            patch("energy_pipeline.storage.RawSink"),
+        ):
+            dag.get_task("extract").python_callable(ti=MagicMock())
+            client.return_value.get.assert_not_called()
+            source, passed, window = extract.call_args.args
+            assert passed is settings
+            assert (window.start, window.end) == ("2026-07", "2026-07")
+            assert extract.call_args.kwargs == {"max_pages": 1}
+            source.fetch_page(0, 50)
+            params = client.return_value.get.call_args.args[0]
+            assert params["facets[location][]"] == "TX"
+            assert params["facets[sectorid][]"] == "1"
+            import json
+
+            scope = json.loads(store.return_value.put_if_absent.call_args.args[1])
+            assert scope["facets"] == {"location": "TX", "sectorid": "1"}
+            assert scope["window"] == {"start": "2026-07", "end": "2026-07"}
+            assert "offline-key" not in json.dumps(scope)
+
+    @pytest.mark.parametrize(
+        "env",
+        [
+            {"EIA_START_PERIOD": "2026-07"},
+            {"EIA_START_PERIOD": "2026-13", "EIA_END_PERIOD": "2026-13"},
+            {"EIA_MAX_PAGES": "0"},
+            {"EIA_LOCATION": ""},
+        ],
+    )
+    def test_invalid_live_scope_fails_before_requests_and_storage(self, dag, monkeypatch, env):
+        from unittest.mock import MagicMock, patch
+
+        from energy_pipeline.config import Settings
+
+        monkeypatch.delenv("FIXTURE_PATH", raising=False)
+        for key in [
+            "EIA_START_PERIOD",
+            "EIA_END_PERIOD",
+            "EIA_LOCATION",
+            "EIA_SECTOR_ID",
+            "EIA_FUELTYPE_ID",
+            "EIA_MAX_PAGES",
+        ]:
+            monkeypatch.delenv(key, raising=False)
+        for key, value in env.items():
+            monkeypatch.setenv(key, value)
+        with (
+            patch(
+                "energy_pipeline.config.Settings.from_env", return_value=Settings(api_key="offline")
+            ),
+            patch("energy_pipeline.client.EiaClient", autospec=True) as client,
+            patch("energy_pipeline.storage.RawSink") as sink,
+        ):
+            with pytest.raises(ValueError):
+                dag.get_task("extract").python_callable(ti=MagicMock())
+            client.return_value.get.assert_not_called()
+            sink.return_value.write.assert_not_called()

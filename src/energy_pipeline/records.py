@@ -64,10 +64,13 @@ _TEXT = ""
 
 PERIOD_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 
-#: The seven currently classified leaf sectors, supported by the historical
-#: bulk-file vocabulary; this is not the complete API sector vocabulary.
-#: Other sector codes remain UNKNOWN: validation warns and publication blocks.
-KNOWN_SECTORS = frozenset("1234567")
+#: Disjoint generation sectors, including residential small-scale solar.
+#: Captured API facets and sector-sum evidence: classification_evidence.json.
+KNOWN_SECTORS = frozenset("12345678")
+
+#: Overlapping sector totals; source code 95 remains UNKNOWN because its
+#: "Coal Consumption" label does not explain its generation observations.
+ROLLUP_SECTORS = frozenset({"90", "94", "96", "97", "98", "99"})
 
 #: Fourteen accepted rollup strings: eight non-Pacific census divisions, US,
 #: and five Pacific spellings. Historical API reports name PCC/PCN/PAC;
@@ -94,61 +97,67 @@ ROLLUP_GEOGRAPHIES = frozenset(
     }
 )
 
-#: Confirmed aggregate energy-source codes. Each member was verified as a rollup
-#: by a live data check (not a name guess) on 2026-07 at US/All-Sectors:
-#:
-#: - ``ALL`` — observed in a live response; sums all leaf fuels
-#: - ``AOR`` — observed in a live response; sums renewable leaves
-#: - ``SUN`` — verified: SUN = SPV + STH (41,411.78 = 41,096.84 + 314.94)
-#: - ``WND`` — verified: WND = WNS + WNT (32,183.93 = 159.55 + 32,024.38)
-#: - ``COL`` — verified: COL = COW - WOC (75,062.39 = 75,784.96 - 722.57);
-#:   COW is an aggregate, COL excludes waste-coal
-#: - ``COW`` — verified: COW = COL + WOC
-#: - ``TSN`` — verified: TSN = SUN + DPV (52,336.84 = 41,411.78 + 10,925.07)
-#: - ``TPV`` — verified: TPV = SPV + DPV (52,021.90 = 41,096.84 + 10,925.07)
-#: - ``FOS`` — verified: FOS is a superset of NG (fossil fuels aggregate)
-#: - ``REN`` — verified: REN is a superset (renewable aggregate)
-#: - ``NGO`` — verified: NGO >= NG (natural gas & other gases aggregate)
-#: - ``PET`` — verified: PET >= DFO + RFO + PC (petroleum aggregate)
-#:
-#: Codes with aggregate names but UNVERIFIED numerically (remain UNKNOWN):
-#: ``BIO``, ``OB2``, ``OBW``, ``MSB``, ``PEL``, ``RC``.
-#: These need the same numerical check before promotion from UNKNOWN to rollup.
+#: Non-additive fuel representations excluded from the canonical leaf basis.
+#: This includes source totals and overlapping alternatives: OB2 duplicates the
+#: ORW bucket, and BIS duplicates BIT in the captured 2019/2026 observations.
+#: Codes are retained verbatim; they are never renamed or deduplicated as aliases.
+#: MLG = LFG + MSB, WAS = MLG + ORW, OBW = MSB + ORW, BIO = WWW + WAS.
+#: Solar, wind, coal and petroleum component identities are captured in
+#: data/fixtures/eia/classification_evidence.json. Leaf/rollup is an additive
+#: basis contract, not a claim that every source label describes a tree node.
 KNOWN_ENERGY_SOURCE_AGGREGATES = frozenset(
     {
         "ALL",
         "AOR",
-        "SUN",
-        "WND",
+        "BIO",
+        "BIS",
         "COL",
         "COW",
-        "TSN",
-        "TPV",
         "FOS",
-        "REN",
+        "MLG",
         "NGO",
+        "OB2",
+        "OBW",
+        "PEL",
         "PET",
+        "REN",
+        "SUN",
+        "TPV",
+        "TSN",
+        "WAS",
+        "WND",
     }
 )
 
-#: The 15 leaf MER energy-source codes. ``SUN``, ``WND``, ``COL`` were moved to
-#: KNOWN_ENERGY_SOURCE_AGGREGATES after the 2026-10-09 live verification proved
-#: they are rollups (SUN = SPV + STH, WND = WNS + WNT, COL = COW - WOC).
-#: See KNOWN_ENERGY_SOURCE_AGGREGATES comment for verification evidence.
+#: Disjoint fuel components. MLG was removed from this basis after its overlap
+#: with LFG/MSB was demonstrated. DPV is a valid, separate small-scale component;
+#: the utility-scale dbt mart explicitly excludes it rather than mislabelling
+#: it as a rollup or silently changing the ALL reconciliation coverage.
 BASE_ENERGY_SOURCES = frozenset(
     {
+        "ANT",
+        "BIT",
         "DFO",
+        "DPV",
         "GEO",
         "HPS",
         "HYC",
-        "MLG",
+        "LFG",
+        "LIG",
+        "MSB",
         "NG",
         "NUC",
         "OOG",
         "ORW",
         "OTH",
         "PC",
+        "RC",
         "RFO",
+        "SPV",
+        "STH",
+        "SUB",
+        "WNS",
+        "WNT",
         "WOC",
         "WOO",
         "WWW",
@@ -252,6 +261,8 @@ def classify_geography(location: str) -> str:
 
 def classify_sector(sectorid: str) -> str:
     """Same three-way contract for ``sectorid``."""
+    if sectorid in ROLLUP_SECTORS:
+        return ROLLUP
     if sectorid in KNOWN_SECTORS:
         return LEAF
     return UNKNOWN
@@ -314,9 +325,7 @@ class GenerationRecord:
 
     @property
     def is_rollup_sector(self) -> bool:
-        """Always False for the 7 verified sectors. Kept as a uniform contract so
-        every dimension presents the same question, and so a future EIA sector
-        rollup has somewhere to be flagged."""
+        """True for positively classified, overlapping sector totals."""
         return self.sector_class is ROLLUP
 
     @property

@@ -234,12 +234,11 @@ def test_business_key_is_the_natural_four_column_composite(cases):
     assert record.key == ("2026-07", "AK", "1", "NG")
 
 
-def test_sector_is_never_a_rollup(edge_cases_fixture):
-    """EIA's 7 sectors are mutually exclusive and collectively exhaustive, with no
-    rollup member. The flag exists as a uniform contract and a tripwire."""
+def test_fixture_leaf_sectors_are_not_rollups(edge_cases_fixture):
+    """The original fixture's leaf-sector flags remain unchanged."""
     from energy_pipeline.records import KNOWN_SECTORS
 
-    assert frozenset("1234567") == KNOWN_SECTORS
+    assert frozenset("12345678") == KNOWN_SECTORS
     for row in FixtureSource(edge_cases_fixture).rows:
         assert parse_record(row).is_rollup_sector is False
 
@@ -352,3 +351,236 @@ def test_fixture_files_are_valid_json_with_rows(fixtures_dir):
         assert payload, path.name
         # Most fixtures are row lists; the verbatim capture holds a raw envelope.
         assert "rows" in payload or "envelope" in payload, path.name
+
+
+# B4.1: independent additive basis, backed by captured API facets and values.
+EXPECTED_FUEL_LEAVES = frozenset(
+    {
+        "ANT",
+        "BIT",
+        "DFO",
+        "DPV",
+        "GEO",
+        "HPS",
+        "HYC",
+        "LFG",
+        "LIG",
+        "MSB",
+        "NG",
+        "NUC",
+        "OOG",
+        "ORW",
+        "OTH",
+        "PC",
+        "RC",
+        "RFO",
+        "SPV",
+        "STH",
+        "SUB",
+        "WNS",
+        "WNT",
+        "WOC",
+        "WOO",
+        "WWW",
+    }
+)
+EXPECTED_NONADDITIVE_FUELS = frozenset(
+    {
+        "ALL",
+        "AOR",
+        "BIO",
+        "BIS",
+        "COL",
+        "COW",
+        "FOS",
+        "MLG",
+        "NGO",
+        "OB2",
+        "OBW",
+        "PEL",
+        "PET",
+        "REN",
+        "SUN",
+        "TPV",
+        "TSN",
+        "WAS",
+        "WND",
+    }
+)
+
+
+@pytest.fixture
+def classification_evidence(fixtures_dir):
+    return json.loads((fixtures_dir / "classification_evidence.json").read_text())
+
+
+@pytest.mark.parametrize("code", sorted(EXPECTED_FUEL_LEAVES))
+def test_supported_additive_fuel_components_are_leaf(code):
+    from energy_pipeline.records import classify_energy_source
+
+    assert classify_energy_source(code) == "leaf"
+
+
+@pytest.mark.parametrize("code", sorted(EXPECTED_NONADDITIVE_FUELS))
+def test_source_totals_and_overlapping_representations_are_not_additive(code):
+    from energy_pipeline.records import classify_energy_source
+
+    assert classify_energy_source(code) == "rollup"
+
+
+def test_additive_fuel_basis_covers_captured_facet_without_overlap(classification_evidence):
+    from energy_pipeline.records import BASE_ENERGY_SOURCES, KNOWN_ENERGY_SOURCE_AGGREGATES
+
+    observed = {r["id"] for r in classification_evidence["facets"]["fueltypeid"]["facets"]}
+    assert len(observed) == 45
+    assert EXPECTED_FUEL_LEAVES == BASE_ENERGY_SOURCES
+    assert EXPECTED_NONADDITIVE_FUELS == KNOWN_ENERGY_SOURCE_AGGREGATES
+    assert EXPECTED_FUEL_LEAVES.isdisjoint(EXPECTED_NONADDITIVE_FUELS)
+    assert observed == EXPECTED_FUEL_LEAVES | EXPECTED_NONADDITIVE_FUELS
+
+
+@pytest.mark.parametrize("code", ["1", "2", "3", "4", "5", "6", "7", "8"])
+def test_disjoint_generation_sectors_are_leaf(code):
+    from energy_pipeline.records import classify_sector
+
+    assert classify_sector(code) == "leaf"
+
+
+@pytest.mark.parametrize("code", ["90", "94", "96", "97", "98", "99"])
+def test_sector_subtotals_are_rollups(code):
+    from energy_pipeline.records import classify_sector
+
+    assert classify_sector(code) == "rollup"
+
+
+def test_sector95_label_does_not_establish_additive_membership(classification_evidence):
+    from energy_pipeline.records import classify_sector
+
+    labels = {r["id"]: r["name"] for r in classification_evidence["facets"]["sectorid"]["facets"]}
+    assert labels["95"] == "Coal Consumption"
+    assert any(
+        r["sectorid"] == "95" and r["generation"] not in (None, "0")
+        for r in classification_evidence["rows"]
+    )
+    assert classify_sector("95") == "unknown"
+
+
+@pytest.mark.parametrize("fuel", ["NG", "SPV"])
+def test_captured_sector95_noncoal_generation_still_blocks_publication(
+    classification_evidence, fuel
+):
+    from energy_pipeline.validation import Severity, aggregate_publish_gate, validate
+
+    source_row = next(
+        row
+        for row in classification_evidence["rows"]
+        if row["period"] == "2026-07"
+        and row["location"] == "US"
+        and row["sectorid"] == "95"
+        and row["fueltypeid"] == fuel
+    )
+    assert source_row["sectorDescription"] == "Coal Consumption"
+    record = parse_record(source_row)
+    assert record.generation > 0
+    assert record.energy_source_class == "leaf"
+    assert record.sector_class == "unknown"
+    assert not record.is_leaf
+    report = validate([record])
+    assert report.ok
+    assert report.unknown_codes == {"sector": {"95"}}
+    assert any(
+        f.check == "unclassified_sector" and f.severity is Severity.WARN for f in report.findings
+    )
+    findings = aggregate_publish_gate([record])
+    assert len(findings) == 1
+    assert findings[0].check == "unclassified_sector"
+    assert findings[0].severity is Severity.HARD
+
+
+@pytest.mark.parametrize("code", ["ZZZ", "ng", " NG", "NG ", "", None])
+def test_unexpected_or_malformed_fuel_is_not_normalized_into_a_leaf(code):
+    from energy_pipeline.records import classify_energy_source
+
+    assert classify_energy_source(code) == "unknown"
+
+
+def test_captured_fuel_component_identities_without_null_imputation(classification_evidence):
+    from decimal import Decimal
+
+    rows = {
+        (r["period"], r["location"], r["sectorid"], r["fueltypeid"]): r
+        for r in classification_evidence["rows"]
+    }
+    assert len(classification_evidence["fuel_sum_witnesses"]) == 13
+    for witness in classification_evidence["fuel_sum_witnesses"]:
+        prefix = (witness["period"], witness["location"], witness["sectorid"])
+        values = [
+            rows[(*prefix, code)]["generation"]
+            for code in [witness["parent"], *witness["components"]]
+        ]
+        assert all(v is not None for v in values)
+        parent, *parts = [Decimal(v) for v in values]
+        tolerance = Decimal(witness["absolute_tolerance_thousand_mwh"])
+        assert abs(parent - sum(parts, Decimal(0))) <= tolerance
+
+
+def test_overlapping_representations_preserve_keys_and_do_not_double_count(
+    classification_evidence,
+):
+    from energy_pipeline.records import classify_energy_source
+
+    rows = classification_evidence["rows"]
+    for alias, canonical in [("OB2", "ORW"), ("BIS", "BIT")]:
+        pairs = 0
+        indexed = {(r["period"], r["location"], r["sectorid"], r["fueltypeid"]): r for r in rows}
+        for key, row in indexed.items():
+            other = indexed.get((*key[:3], canonical))
+            if key[3] != alias or other is None:
+                continue
+            assert row["generation"] == other["generation"]
+            assert parse_record(row).key != parse_record(other).key
+            pairs += 1
+        assert pairs >= 2
+        assert classify_energy_source(alias) == "rollup"
+        assert classify_energy_source(canonical) == "leaf"
+
+
+def test_utility_scale_sql_excludes_disjoint_small_scale_solar(fixtures_dir):
+    import sqlite3
+
+    sql = (
+        (fixtures_dir.parents[2] / "dbt/models/intermediate/int_generation_leaf.sql")
+        .read_text()
+        .replace("{{ ref('stg_generation') }}", "stg_generation")
+    )
+    with sqlite3.connect(":memory:") as conn:
+        conn.execute(
+            "CREATE TABLE stg_generation (fueltypeid TEXT, sectorid TEXT, is_leaf BOOLEAN)"
+        )
+        conn.executemany(
+            "INSERT INTO stg_generation VALUES (?, ?, ?)",
+            [
+                ("SPV", "1", True),
+                ("STH", "1", True),
+                ("DPV", "4", True),
+                ("SUN", "1", False),
+                ("SPV", "8", True),
+            ],
+        )
+        assert conn.execute(sql).fetchall() == [("SPV", "1", 1), ("STH", "1", 1)]
+
+
+def test_captured_sector_subtotals_are_not_independent_leaf_sectors(classification_evidence):
+    from decimal import Decimal
+
+    rows = {
+        (r["period"], r["location"], r["fueltypeid"], r["sectorid"]): r
+        for r in classification_evidence["rows"]
+    }
+    for witness in classification_evidence["sector_sum_witnesses"]:
+        prefix = (witness["period"], witness["location"], witness["fueltypeid"])
+        total = Decimal(rows[(*prefix, witness["parent"])]["generation"])
+        parts = [Decimal(rows[(*prefix, c)]["generation"]) for c in witness["components"]]
+        assert abs(total - sum(parts, Decimal(0))) <= Decimal(
+            witness["absolute_tolerance_thousand_mwh"]
+        )

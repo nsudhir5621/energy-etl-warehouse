@@ -179,3 +179,51 @@ def test_api_source_builds_the_documented_query_parameters():
     assert sent[1]["sort[0][direction]"] == "desc"
     assert sent[1]["length"] == 1
     assert "api_key" not in sent[0], "the client injects the key, not the source"
+
+
+@pytest.mark.parametrize("facets", [{"location": "TX", "sectorid": "1"}, {"fueltypeid": "NG"}])
+def test_api_source_applies_independent_scope_to_pages_and_discovery(facets):
+    from unittest.mock import Mock
+
+    client = Mock()
+    client.get.return_value = {"response": {"data": []}}
+    original = dict(facets)
+    source = ApiSource(
+        client, Settings(api_key="offline"), PeriodWindow("2026-07", "2026-07"), facets=facets
+    )
+    facets.clear()
+    source.fetch_page(0, 50)
+    source.latest_period()
+    for call in client.get.call_args_list:
+        for key, value in original.items():
+            assert call.args[0][f"facets[{key}][]"] == value
+    assert client.get.call_args_list[0].args[0]["start"] == "2026-07"
+    assert "start" not in client.get.call_args_list[1].args[0]
+
+
+@pytest.mark.parametrize(
+    "facets", [{"bad": "TX"}, {"location": ""}, {"location": " TX"}, {"sectorid": None}]
+)
+def test_api_source_rejects_ambiguous_scope_before_requests(facets):
+    from unittest.mock import Mock
+
+    client = Mock()
+    with pytest.raises(ValueError):
+        ApiSource(
+            client, Settings(api_key="offline"), PeriodWindow("2026-07", "2026-07"), facets=facets
+        )
+    client.get.assert_not_called()
+
+
+def test_explicit_extraction_page_budget_does_not_accept_partial_results(monthly_fixture):
+    from energy_pipeline.errors import MalformedResponseError
+
+    source = FixtureSource(monthly_fixture)
+    with pytest.raises(MalformedResponseError, match="within 1 pages"):
+        extract(
+            source,
+            Settings(api_key=None, page_size=3),
+            PeriodWindow("2026-06", "2026-08"),
+            max_pages=1,
+        )
+    assert source.requests == [(0, 3)]

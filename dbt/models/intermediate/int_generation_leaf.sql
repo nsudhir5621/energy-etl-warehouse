@@ -11,3 +11,7 @@
 select *
 from {{ ref('stg_generation') }}
 where is_leaf
+  and sectorid in ('1', '2', '3', '4', '5', '6', '7')
+  -- ALL is utility-scale; DPV is a disjoint estimated small-scale observation.
+  -- Keep DPV in core/staging, but outside this utility-scale analytical scope.
+  and fueltypeid <> 'DPV'

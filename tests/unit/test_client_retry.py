@@ -201,9 +201,13 @@ def test_rate_limit_headers_are_learned_from_the_response():
     assert client.rate_remaining == 9
 
 
-def test_a_missing_api_key_fails_before_any_request_is_sent():
+def test_a_missing_api_key_fails_before_any_request_is_sent(tmp_path, monkeypatch):
     """An unauthenticated request is a wasted round trip that also lands in the
     rate limiter's error path."""
+    from pathlib import Path
+
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    monkeypatch.delenv("EIA_API_KEY", raising=False)
     session = FakeSession(FakeResponse(200))
     client = EiaClient(
         Settings(api_key=None), session=session, sleep=lambda _: None, clock=lambda: 0.0
@@ -212,6 +216,41 @@ def test_a_missing_api_key_fails_before_any_request_is_sent():
     with pytest.raises(ClientSourceError, match="EIA_API_KEY is not set"):
         client.get({"frequency": "monthly"})
     assert session.calls == []
+
+
+def test_client_resolves_fallback_only_on_first_live_request(monkeypatch):
+    import energy_pipeline.client as client_module
+
+    loads = []
+
+    def load():
+        loads.append(True)
+        return "file-test-key"
+
+    monkeypatch.setattr(client_module, "load_api_key", load)
+    session = FakeSession(FakeResponse(200), FakeResponse(200))
+    client = EiaClient(Settings(api_key=None), session=session)
+    assert loads == []
+    client.get({"length": 1})
+    client.get({"length": 1})
+    assert loads == [True]
+    assert [call["params"]["api_key"] for call in session.calls] == [
+        "file-test-key",
+        "file-test-key",
+    ]
+
+
+@pytest.mark.parametrize("error_class", [requests.Timeout, requests.ConnectionError])
+def test_transport_failure_never_logs_credential_bearing_exception(error_class, caplog):
+    session = FakeSession(
+        FakeResponse(200),
+        exc=error_class("https://api.eia.gov/v2/example?api_key=test-key"),
+    )
+    client, _ = make_client(session, max_retries=1)
+    assert client.get({"length": 1}) == BODY
+    assert len(session.calls) == 2
+    assert "test-key" not in caplog.text
+    assert "api_key=" not in caplog.text
 
 
 def test_the_api_key_is_sent_but_never_logged_in_the_url(caplog):

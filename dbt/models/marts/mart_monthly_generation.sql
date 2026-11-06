@@ -1,6 +1,7 @@
 -- Mart: final analytical table for monthly net electricity generation.
 --
--- This is the table analysts query. It contains only leaf members (non-rollup
+-- This utility-scale table excludes small-scale DPV in int_generation_leaf.
+-- It contains only leaf members (non-rollup
 -- geographies, sectors, and energy sources), so SUM(generation_mwh) produces an
 -- accurate total with no double-counting from parent geographies or aggregate
 -- fuel codes.
